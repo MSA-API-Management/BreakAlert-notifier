@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="ISO-8859-1">
+	<title>Welcome to the Notifier</title>
+
+</head>
+<body>
+	<div class="container text-center">
+		<h1>Welcome to to the Notifier</h1>
+		<h3><a th:href="@{/register}">Register</a></h3>
+		<h3><a th:href="@{/loginPage}">Login</a></h3>
+        <p th:if="${successMessage}" th:text="${successMessage}" style="color: green;"></p>
+        <p th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></p>
+	</div>
+</body>
+</html>

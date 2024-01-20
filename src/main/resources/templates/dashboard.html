@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .dashboard-container, subscribeTab {
+            width: 200vh;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-right: 10px;
+            margin-left: 10px;
+        }
+        h2 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        h2 span, li span:nth-child(-n + 2) {
+            margin-right: 20px;
+        }
+        #content{
+            margin-top: 10px;
+        }
+
+
+    </style>
+    <script>
+        function showTab(tabName) {
+            document.getElementById("dashboardTab").style.display = tabName === "dashboard" ? "block" : "none";
+            document.getElementById("subscribeTab").style.display = tabName === "subscribe" ? "block" : "none";
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <button onclick="showTab('dashboard')">Dashboard</button>
+        <button onclick="showTab('subscribe')">Subscribe</button>
+    </div>
+    <div id="dashboardTab">
+        <ul class="dashboard-container">
+            <h2>Welcome, <span style="margin-right: 0px;" th:text="${username}"></span>!</h2>
+            <h3>Your Subscriptions:</h3>
+            <ul>
+                <li th:each="subscription : ${subscriptions}">
+                    <span th:text="${subscription.subName}" style="font-weight: bold"></span>  <span th:text="${subscription.address}" style="font-weight: bold"></span>
+                    <br><br>
+                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}">
+                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
+                            <span th:text="${dataChanges.title}"></span>
+                            <span th:text="${dataChanges.timestamp}"></span><br>
+                            <div th:text="${dataChanges.content}" id="content"></div><br>
+                        </li>
+                    </ul>
+                <br><br>
+                </li>
+            </ul>
+        </ul>
+    </div>
+    <div id="subscribeTab" style="display: none;">
+        <form th:action="@{/subscribe}" method="post">
+            <label for="subscriptionLink">Subscription Link: </label>
+            <input type="text" id="subscriptionLink" name="subscriptionLink">
+            <label for="nameOfSub">Choose a name: </label>
+            <input type="text" id="nameOfSub" name="nameOfSub">
+            <button type="submit">Subscribe</button>
+            <div th:if="${subscriptionSuccess}">
+                Successfully subscribed!
+            </div>
+            <div th:if="${subscriptionError}">
+                Subscribing was not successful!
+            </div>
+
+        </form>
+    </div>
+</body>
+</html>
+
