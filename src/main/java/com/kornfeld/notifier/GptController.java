@@ -52,14 +52,12 @@ public class GptController {
 
         emailSender.sendEmail(toEmail, emailSubject, emailBody);
 
-
-
-        // Send POST request for Bauer
-        String apiUrl = "http://localhost:3000/bikeCategory";
+        // Send POST request for Teams and Github
+       /* String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String jsonBody = "{\"name\": \"testname\"}";
+        String jsonBody = "{\"title\": \"API Changes\", \"description\": \""+response+"\"}";
 
         HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
 
@@ -70,7 +68,7 @@ public class GptController {
         } else {
             System.out.println("POST request failed. Response: " + postResponse.getBody());
         }
-
+        */
 
         return "index";
     }
