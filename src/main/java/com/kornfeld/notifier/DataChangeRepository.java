@@ -9,4 +9,6 @@ import java.util.Set;
 @Repository
 public interface DataChangeRepository extends JpaRepository<DataChange, Long> {
     Set<DataChange> findBySubscriptionId(Long id);
+
+    DataChange save(DataChange dataChange);
 }

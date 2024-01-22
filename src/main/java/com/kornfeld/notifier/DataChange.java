@@ -11,6 +11,7 @@ public class DataChange {
     private Long id;
 
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @ManyToOne
