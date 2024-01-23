@@ -13,8 +13,8 @@
             padding: 0;
             display: flex;
         }
-        .dashboard-container, subscribeTab {
-            width: 200vh;
+        .dashboard-container {
+            width: 150vh;
             background-color: #fff;
             border-radius: 8px;
             padding: 20px;
@@ -37,6 +37,18 @@
         }
         #content{
             margin-top: 10px;
+            white-space: pre-line;
+        }
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: #fff;
+        }
+        button:hover {
+            background-color: #2980b9;
         }
 
 
@@ -49,54 +61,66 @@
     </script>
 </head>
 <body>
-    <div>
-        <button onclick="showTab('dashboard')">Dashboard</button>
-        <button onclick="showTab('subscribe')">Subscribe</button>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <button onclick="showTab('dashboard')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Dashboard</button>
+        <button onclick="showTab('subscribe')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Subscribe</button>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" style="width: 100px; margin-top: 20px; margin-left: 10px;">Logout</button>
+        </form>
     </div>
+
     <div id="dashboardTab">
         <ul class="dashboard-container">
             <h2>Welcome, <span style="margin-right: 0px;" th:text="${username}"></span>!</h2>
+            <br>
             <h3>Your Subscriptions:</h3>
+            <br>
             <ul>
-                <li th:each="subscription : ${subscriptions}">
-                    <span th:text="${subscription.subName}" style="font-weight: bold"></span>  <span th:text="${subscription.address}" style="font-weight: bold"></span>
+                <li th:each="subscription : ${subscriptions}" style="border-top: 2px solid black; padding-top: 10px;">
+                    <span th:text="${subscription.subName}" style="font-weight: bold; font-size: 20px;"></span>  <span th:text="${subscription.address}" style="font-weight: bold; font-size: 20px;"></span>
                     <br><br>
-                    <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post">
-                        <button type="submit">Unsubscribe</button>
-                    </form>
-                    <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post">
-                        <label for="newName">Change name of subscription:</label>
-                        <input type="text" id="newName" name="newName" required>
-                        <button type="submit">Change Name</button>
-                    </form>
+                    <div>
+                        <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" style="display: inline-block; margin-right: 10px;">
+                            <button type="submit">Unsubscribe</button>
+                        </form>
+                        <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post" style="display: inline-block; margin-left: 40px;">
+                            <label for="newName">Change name of subscription:</label>
+                            <input type="text" id="newName" name="newName" required>
+                            <button type="submit">Change Name</button>
+                        </form>
+                    </div>
                     <br><br>
                     <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}">
-                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
-                            <span th:text="${dataChanges.title}"></span>
+                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}" style="border-top: 1px dotted black; padding-top: 5px;">
+                            <span th:text="${dataChanges.title}" style="font-weight: bold"></span>
                             <span th:text="${dataChanges.timestamp}"></span><br>
                             <div th:text="${dataChanges.content}" id="content"></div><br>
                         </li>
                     </ul>
-                <br><br>
+                <br>
                 </li>
             </ul>
         </ul>
     </div>
     <div id="subscribeTab" style="display: none;">
-        <form th:action="@{/subscribe}" method="post">
-            <label for="subscriptionLink">Subscription Link: </label>
-            <input type="text" id="subscriptionLink" name="subscriptionLink">
-            <label for="nameOfSub">Choose a name: </label>
-            <input type="text" id="nameOfSub" name="nameOfSub">
-            <button type="submit">Subscribe</button>
-            <div th:if="${subscriptionSuccess}">
-                Successfully subscribed!
-            </div>
-            <div th:if="${subscriptionError}">
-                Subscribing was not successful!
-            </div>
-
-        </form>
+        <ul class="dashboard-container">
+            <h3>Subscribe to a new repository:</h3>
+            <form th:action="@{/subscribe}" method="post">
+                <label for="subscriptionLink">Subscription Link: </label>
+                <input type="text" id="subscriptionLink" name="subscriptionLink">
+                <br><br>
+                <label for="nameOfSub">Choose a name: </label>
+                <input type="text" id="nameOfSub" name="nameOfSub">
+                <br><br>
+                <button type="submit">Subscribe</button>
+                <div th:if="${subscriptionSuccess}">
+                    Successfully subscribed!
+                </div>
+                <div th:if="${subscriptionError}">
+                    Subscribing was not successful!
+                </div>
+            </form>
+        </ul>
     </div>
 </body>
 </html>

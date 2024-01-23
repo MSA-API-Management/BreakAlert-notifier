@@ -52,7 +52,6 @@ public class DashboardController {
         for (Subscription subscription : subscriptions) {
             System.out.println("Subscription ID"+subscription.getId());
             Set<DataChange> dataChanges = dataChangeRepository.findBySubscriptionId(subscription.getId());
-            System.out.println("DataChanges for Subscription ID " + subscription.getId() + ": " + dataChanges);
             if(dataChanges!=null) {
                 dataChangesMap.put(subscription.getId(), dataChanges);
             }
@@ -126,6 +125,11 @@ public class DashboardController {
         }
 
         return "redirect:/dashboard";
+    }
+
+    @PostMapping("/logout")
+    public String logout( Model model) {
+        return "index";
     }
 
     public AppUser getCurrentUser(){
