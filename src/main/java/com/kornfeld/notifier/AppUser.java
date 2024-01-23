@@ -47,7 +47,7 @@ public class AppUser {
         this.email = email;
     }
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_subscription",
             joinColumns = @JoinColumn(name = "user_id"),

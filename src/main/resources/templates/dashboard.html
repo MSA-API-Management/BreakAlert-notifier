@@ -61,6 +61,15 @@
                 <li th:each="subscription : ${subscriptions}">
                     <span th:text="${subscription.subName}" style="font-weight: bold"></span>  <span th:text="${subscription.address}" style="font-weight: bold"></span>
                     <br><br>
+                    <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post">
+                        <button type="submit">Unsubscribe</button>
+                    </form>
+                    <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post">
+                        <label for="newName">Change name of subscription:</label>
+                        <input type="text" id="newName" name="newName" required>
+                        <button type="submit">Change Name</button>
+                    </form>
+                    <br><br>
                     <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}">
                         <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
                             <span th:text="${dataChanges.title}"></span>
