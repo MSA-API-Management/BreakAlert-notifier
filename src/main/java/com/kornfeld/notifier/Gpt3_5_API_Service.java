@@ -55,7 +55,7 @@ public class Gpt3_5_API_Service {
         requestBody.put("model", "gpt-3.5-turbo");
         requestBody.put("messages", messages);
         requestBody.put("temperature", 0.7);
-        requestBody.put("max_tokens", 70);
+        requestBody.put("max_tokens", 1000);
 
         // Convert requestBody to json
         ObjectMapper objectMapper = new ObjectMapper();

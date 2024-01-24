@@ -1,5 +1,6 @@
 package com.kornfeld.notifier;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -82,13 +83,15 @@ public class GptController {
 
 
         // Send POST request for Teams and Github
-        /*String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9";
+        String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String jsonBody = "{\"title\": \"API Changes\", \"description\": \""+response+"\"}";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", "API Changes");
+        jsonObject.put("description", response);
 
-        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+        HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
 
         ResponseEntity<String> postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
 
@@ -97,7 +100,7 @@ public class GptController {
         } else {
             System.out.println("POST request failed. Response: " + postResponse.getBody());
         }
-        */
+
 
         return "index";
     }
