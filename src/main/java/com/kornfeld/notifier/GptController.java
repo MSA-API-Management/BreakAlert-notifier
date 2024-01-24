@@ -56,7 +56,7 @@ public class GptController {
         String response = gpt3ApiService.generateResponse(prompt);
         System.out.println("Response: \n"+response);
 
-        /*
+
         String emailSubject = "API Changes";
         String emailBody = "Prompt:\n" + prompt + "\n\nResponse:\n\n" + response;
         String toEmail = "d.kornfeld11@gmail.com";  // Change to subscribed user emails
@@ -100,7 +100,7 @@ public class GptController {
         } else {
             System.out.println("POST request failed. Response: " + postResponse.getBody());
         }
-        */
+
 
         return "index";
     }
