@@ -3,6 +3,7 @@ package com.kornfeld.notifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -21,12 +22,14 @@ import java.util.Map;
 @Service
 public class Gpt3_5_API_Service {
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String API_KEY = "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";
+
+    @Value("${GPT_API_KEY}")
+    private String API_KEY;
     private static final String MODEL = "gpt-3.5-turbo";
 
     private static final String DESCRIPTION = "You are an assistant which analyzes the changes from APIs over time. " +
             "Search for those APIs and describe them as accurately with as much details as you possibly can. Different changes in sections are divided by ' | '. " +
-            "Explain only the differences very briefly (at max 1000 tokens).";
+            "Explain only the differences very briefly (at max 1000 tokens). Use bullet points like this '-' for the chapters like What's new.";
 
     public String generateResponse(String prompt) {
         System.out.println("Generating Response soon...");

@@ -56,7 +56,7 @@ public class GptController {
         String response = gpt3ApiService.generateResponse(prompt);
         System.out.println("Response: \n"+response);
 
-
+        /*
         String emailSubject = "API Changes";
         String emailBody = "Prompt:\n" + prompt + "\n\nResponse:\n\n" + response;
         String toEmail = "d.kornfeld11@gmail.com";  // Change to subscribed user emails
@@ -82,7 +82,7 @@ public class GptController {
         System.out.println("Stored data change successfully");
 
 
-        // Send POST request for Teams and Github
+        // Send POST request for Teams and GitLab
         String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -100,7 +100,7 @@ public class GptController {
         } else {
             System.out.println("POST request failed. Response: " + postResponse.getBody());
         }
-
+        */
 
         return "index";
     }
