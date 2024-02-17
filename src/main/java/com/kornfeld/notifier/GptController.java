@@ -119,7 +119,7 @@ public class GptController {
         }
 
 */
-        return "index";
+        return "successful";
     }
 
 }
