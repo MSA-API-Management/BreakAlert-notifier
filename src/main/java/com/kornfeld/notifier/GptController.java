@@ -1,5 +1,7 @@
 package com.kornfeld.notifier;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -17,7 +19,10 @@ import java.io.IOException;
 
 import java.time.LocalDateTime;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 
 @Controller
@@ -33,12 +38,19 @@ public class GptController {
     private SubscriptionRepository subscriptionRepository;
 
     private RestTemplate restTemplate;
-    public GptController(Gpt3_5_API_Service gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository) {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    private final UserRepository userRepository;
+
+    public GptController(Gpt3_5_API_Service gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
         this.gpt3ApiService = gpt3ApiService;
         this.htmlParser = htmlParser;
         this.restTemplate = restTemplate.build();
         this.dataChangeRepository = dataChangeRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.userRepository = userRepository;
     }
     //Use RESTer tool to test it
     // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:8080/generate-response" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
@@ -57,31 +69,36 @@ public class GptController {
         System.out.println("Response: \n"+response);
 
 
-        String emailSubject = "API Changes";
-        String emailBody = "Prompt:\n" + prompt + "\n\nResponse:\n\n" + response;
-        String toEmail = "d.kornfeld11@gmail.com";  // Change to subscribed user emails
-
-        System.out.println("Sending email... ");
-
-        emailSender.sendEmail(toEmail, emailSubject, emailBody);
-
-
-        System.out.println("Storing all info...");
+        String emailSubject = "API Changes detected";
+        String emailBody = "Overview:\n\n" + response + "\n\n\nDetailed Changes:\n" + prompt;
 
         DataChange dataChange = new DataChange();
         dataChange.setTitle(emailSubject);
         dataChange.setContent(emailBody);
-        Optional<Subscription> subscription = subscriptionRepository.findById(1L);
-        if(subscription.isPresent()){
-            dataChange.setSubscription(subscription.get());
+
+        List<AppUser> users = userRepository.findAll();
+
+        for (AppUser user : users) {
+            Set<Subscription> subscriptions = user.getSubscriptions();
+            for (Subscription subscription : subscriptions) {
+                if(subscription.getSubName().equals("Service1")){       // Change to received API/Service Name from Bauer
+                    System.out.println("User: "+ user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
+
+                    System.out.println("Sending email... ");
+                    emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
+
+                    System.out.println("Storing all info...");          // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
+
+                    dataChange.setSubscription(subscription);
+                    dataChange.setTimestamp(LocalDateTime.now());
+                    dataChangeRepository.save(dataChange);
+
+                    System.out.println("Stored data change successfully");
+                }
+            }
         }
-        dataChange.setTimestamp(LocalDateTime.now());
 
-        dataChangeRepository.save(dataChange);
-
-        System.out.println("Stored data change successfully");
-
-
+/*
         // Send POST request for Teams and GitLab
         String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9";
         HttpHeaders headers = new HttpHeaders();
@@ -101,7 +118,7 @@ public class GptController {
             System.out.println("POST request failed. Response: " + postResponse.getBody());
         }
 
-
+*/
         return "index";
     }
 

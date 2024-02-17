@@ -28,8 +28,19 @@ public class Gpt3_5_API_Service {
     private static final String MODEL = "gpt-3.5-turbo";
 
     private static final String DESCRIPTION = "You are an assistant which analyzes the changes from APIs over time. " +
-            "Search for those APIs and describe them as accurately with as much details as you possibly can. Different changes in sections are divided by ' | '. " +
-            "Explain only the differences very briefly (at max 1000 tokens). Use bullet points like this '-' for the chapters like What's new.";
+            "Usually you should receive a rather large list of API Changes. " +
+            "Different changes in sections like 'What's New' are divided by ' | '. " +
+            "Describe the most important/meaningful changes as briefly as you can. " +
+            "The result should be a general textual overview of the changes. Do not go into detail or make a enumeration. " +
+            "The receiver of your answer is a developer, so there is no need for explanations on 'easy' topics. " +
+            "Make line breaks after sentences for a better structure. But do not make double line breaks. " +
+            // ---------------- Optional ----------------
+            "The result could something like this: " +
+            "The API now includes a new endpoint for testing with a null parameter. \n" +
+            "The endpoint for testing has been updated to include a new parameter called 'testing'. \n" +
+            "An endpoint labeled '2nd' has been removed. \n" +
+            "An endpoint labeled 'second to last' is now deprecated. \n" +
+            "The endpoint previously labeled 'last' has undergone some changes.";
 
     public String generateResponse(String prompt) {
         System.out.println("Generating Response soon...");
