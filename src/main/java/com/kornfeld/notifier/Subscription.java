@@ -1,5 +1,6 @@
 package com.kornfeld.notifier;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public class Subscription {
 
     private String subName;
     private String address;
+    private String branch;
 
     @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL)
     private List<DataChange> dataChanges = new ArrayList<>();
@@ -47,4 +49,11 @@ public class Subscription {
         this.address = address;
     }
 
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
 }

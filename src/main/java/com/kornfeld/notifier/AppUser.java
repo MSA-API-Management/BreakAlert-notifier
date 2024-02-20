@@ -3,6 +3,7 @@ package com.kornfeld.notifier;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -15,6 +16,7 @@ public class AppUser {
     private String name;
     private String password;
     private String email;
+    private String token;
 
     public Long getId() {
         return id;
@@ -47,6 +49,13 @@ public class AppUser {
         this.email = email;
     }
 
+    public String getToken() {
+        return token;
+    }
+    public void setToken(String token) {
+        this.token = token;
+    }
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_subscription",
@@ -55,6 +64,9 @@ public class AppUser {
     private Set<Subscription> subscriptions;
 
     public Set<Subscription> getSubscriptions() {
+        if (subscriptions == null) {
+            subscriptions = new HashSet<>();
+        }
         return subscriptions;
     }
 }
