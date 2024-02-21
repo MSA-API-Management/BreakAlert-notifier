@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface UserRepository extends JpaRepository<AppUser, Long> {
@@ -16,4 +17,6 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
     ArrayList<AppUser> selectAllUsers();
 
     List<AppUser> findByNameOrEmail(String name, String email);
+
+    List<AppUser> findByToken(String token);
 }

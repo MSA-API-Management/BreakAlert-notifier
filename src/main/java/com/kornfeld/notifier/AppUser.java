@@ -2,7 +2,6 @@ package com.kornfeld.notifier;
 
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +16,10 @@ public class AppUser {
     private String password;
     private String email;
     private String token;
+
+    // at first nullable must be set to true in order to create the attribute
+    @Column(name = "is_client", nullable = false)
+    private boolean isClient;
 
     public Long getId() {
         return id;
@@ -54,6 +57,14 @@ public class AppUser {
     }
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public boolean isClient() {
+        return isClient;
+    }
+
+    public void setClient(boolean client) {
+        isClient = client;
     }
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})

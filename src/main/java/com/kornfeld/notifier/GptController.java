@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -53,50 +54,78 @@ public class GptController {
         this.userRepository = userRepository;
     }
     //Use RESTer tool to test it
-    // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:8080/generate-response" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
+    // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:8080/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
     @PostMapping("/generate-response")
-    public String generateResponse(
+    public ResponseEntity<String> generateResponse(
             @RequestBody String htmlContent,
+            @RequestParam(value = "address") String address,
+            @RequestParam(value = "branch") String branch,
             Model model
     ) throws IOException {
-        System.out.println("Received a request successfully");
-        System.out.println("HTML File: " + htmlContent);
+        Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
 
-        String prompt = htmlParser.extractChanges(htmlContent);
-        System.out.println("\n\nRequest: " + prompt);
+        if (desiredSub.isPresent()) {
+            System.out.println("Received a request successfully");
+            System.out.println("HTML File: " + htmlContent);
 
-        String response = gpt3ApiService.generateResponse(prompt);
-        System.out.println("Response: \n"+response);
+            String prompt = htmlParser.extractChanges(htmlContent);
+            System.out.println("\n\nRequest: " + prompt);
+
+            String response = gpt3ApiService.generateResponse(prompt);
+            System.out.println("Response: \n" + response);
 
 
-        String emailSubject = "API Changes detected";
-        String emailBody = "Overview:\n\n" + response + "\n\n\nDetailed Changes:\n" + prompt;
+            String emailSubject = "Change(s) in "+desiredSub.get().getSubName()+" detected";
+            String emailBody = "Overview:\n\n" + response + "\n\n\nDetailed Changes:\n" + prompt + "\n\nSubscription Details:\n(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
 
-        DataChange dataChange = new DataChange();
-        dataChange.setTitle(emailSubject);
-        dataChange.setContent(emailBody);
+            DataChange dataChange = new DataChange();
+            dataChange.setTitle(emailSubject);
+            dataChange.setContent(emailBody);
 
-        List<AppUser> users = userRepository.findAll();
+            List<AppUser> users = userRepository.findAll();
 
-        for (AppUser user : users) {
-            Set<Subscription> subscriptions = user.getSubscriptions();
-            for (Subscription subscription : subscriptions) {
-                if(subscription.getSubName().equals("Service1")){       // Change to received API/Service Name from Bauer
-                    System.out.println("User: "+ user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
+            for (AppUser user : users) {
+                Set<Subscription> subscriptions = user.getSubscriptions();
+                for (Subscription subscription : subscriptions) {
+                    if (subscription.getAddress().equals(address) && subscription.getBranch().equals(branch)) {
+                        if (user.getEmail()!=null) {
+                            System.out.println("User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
 
-                    System.out.println("Sending email... ");
-                    emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
+                            System.out.println("Sending email... ");
+                            emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
+                        }
+                        System.out.println("Storing all info...");          // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
 
-                    System.out.println("Storing all info...");          // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
+                        dataChange.setSubscription(subscription);
+                        dataChange.setTimestamp(LocalDateTime.now());
+                        dataChangeRepository.save(dataChange);
 
-                    dataChange.setSubscription(subscription);
-                    dataChange.setTimestamp(LocalDateTime.now());
-                    dataChangeRepository.save(dataChange);
+                        System.out.println("Stored data change successfully");
 
-                    System.out.println("Stored data change successfully");
+                        if(user.isClient()) {
+                            System.out.println("User is registered as a Client in GitLab");
+                            // Send POST request for Teams and GitLab
+                            /*String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=" + user.getToken();
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.setContentType(MediaType.APPLICATION_JSON);
+
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("title", "API Changes");
+                            jsonObject.put("description", response);
+
+                            HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
+
+                            ResponseEntity<String> postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
+
+                            if (postResponse.getStatusCode().is2xxSuccessful()) {
+                                System.out.println("POST request successful. Response: " + postResponse.getBody());
+                            } else {
+                                System.out.println("POST request failed. Response: " + postResponse.getBody());
+                            }*/
+                        }
+                    }
                 }
             }
-        }
 
 /*
         // Send POST request for Teams and GitLab
@@ -119,8 +148,9 @@ public class GptController {
         }
 
 */
-        return "success";
-    }
 
+        }
+        return ResponseEntity.ok("API Change was successfully processed.");
+    }
 }
 
