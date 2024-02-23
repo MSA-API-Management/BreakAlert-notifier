@@ -51,23 +51,26 @@ public class SubscriptionController {
         for (AppUser user : allUsers) {
 
             if(webUrl.equals(user.getToken())){
+                // User exists already and can be a Client only or a Notifier WebApp User with Client functionality
                 userExists = true;
                 entityManager.persist(user);
                 Set<Subscription> allPrevSubscriptions = user.getSubscriptions();
 
-                for (Subscription sub : allPrevSubscriptions) {
-                    System.out.println("SUB ID: " + sub.getId());
+                // Only delete subscriptions when User is only a Client from GitLab (because a WebApp user can also be Client (who can subscribe to something without Client functionality))
+                if(user.getEmail()==null || user.getName()==null || user.getPassword()==null) {
+                    for (Subscription sub : allPrevSubscriptions) {
+                        System.out.println("SUB ID: " + sub.getId());
+                    }
+                    System.out.println("---- After Deletion: ");
+                    user.getSubscriptions().removeIf(prevSub ->
+                            subscriptionList.stream()
+                                    .noneMatch(newSub ->
+                                            newSub.getAddress().equals(prevSub.getAddress()) &&
+                                                    newSub.getBranch().equals(prevSub.getBranch())));
+                    for (Subscription sub : allPrevSubscriptions) {
+                        System.out.println("SUB ID: " + sub.getId());
+                    }
                 }
-                System.out.println("---- After Deletion: ");
-                user.getSubscriptions().removeIf(prevSub ->
-                        subscriptionList.stream()
-                                .noneMatch(newSub ->
-                                        newSub.getAddress().equals(prevSub.getAddress()) &&
-                                                newSub.getBranch().equals(prevSub.getBranch())));
-                for (Subscription sub : allPrevSubscriptions) {
-                    System.out.println("SUB ID: " + sub.getId());
-                }
-
                 for (Subscription newSubscription : subscriptionList) {
                     boolean exists = false;
 
