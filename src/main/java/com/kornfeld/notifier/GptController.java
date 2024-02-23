@@ -102,10 +102,10 @@ public class GptController {
 
                         System.out.println("Stored data change successfully");
 
-                        if(user.isClient()) {
+                        if(user.getToken()!=null) {
                             System.out.println("User is registered as a Client in GitLab");
                             // Send POST request for Teams and GitLab
-                            /*String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=" + user.getToken();
+                            String apiUrl = user.getToken();
                             HttpHeaders headers = new HttpHeaders();
                             headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -121,7 +121,7 @@ public class GptController {
                                 System.out.println("POST request successful. Response: " + postResponse.getBody());
                             } else {
                                 System.out.println("POST request failed. Response: " + postResponse.getBody());
-                            }*/
+                            }
                         }
                     }
                 }

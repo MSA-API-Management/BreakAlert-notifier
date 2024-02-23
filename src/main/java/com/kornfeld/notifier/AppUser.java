@@ -17,10 +17,6 @@ public class AppUser {
     private String email;
     private String token;
 
-    // at first nullable must be set to true in order to create the attribute
-    @Column(name = "is_client", nullable = false)
-    private boolean isClient;
-
     public Long getId() {
         return id;
     }
@@ -57,14 +53,6 @@ public class AppUser {
     }
     public void setToken(String token) {
         this.token = token;
-    }
-
-    public boolean isClient() {
-        return isClient;
-    }
-
-    public void setClient(boolean client) {
-        isClient = client;
     }
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})

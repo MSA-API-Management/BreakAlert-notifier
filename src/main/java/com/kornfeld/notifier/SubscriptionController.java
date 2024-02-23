@@ -101,7 +101,6 @@ public class SubscriptionController {
 
             AppUser user = new AppUser();
             user.setToken(webUrl);
-            user.setClient(true);
             entityManager.persist(user);
             userRepository.findAll().add(user);
 
