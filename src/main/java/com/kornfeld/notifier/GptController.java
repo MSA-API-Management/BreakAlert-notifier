@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ public class GptController {
         this.userRepository = userRepository;
     }
     //Use RESTer tool to test it
-    // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:8080/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
+    // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:30004/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
     @PostMapping("/generate-response")
     public ResponseEntity<String> generateResponse(
             @RequestBody String htmlContent,
@@ -114,40 +115,22 @@ public class GptController {
                             jsonObject.put("description", response);
 
                             HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
-
-                            ResponseEntity<String> postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
-
-                            if (postResponse.getStatusCode().is2xxSuccessful()) {
-                                System.out.println("POST request successful. Response: " + postResponse.getBody());
-                            } else {
-                                System.out.println("POST request failed. Response: " + postResponse.getBody());
+                            ResponseEntity<String> postResponse;
+                            try {
+                                System.out.println("webUrl: " + apiUrl);
+                                postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
+                                if (postResponse.getStatusCode().is2xxSuccessful()) {
+                                    System.out.println("POST request successful. Response: " + postResponse.getBody());
+                                } else {
+                                    System.out.println("POST request failed. Response: " + postResponse.getBody());
+                                }
+                            } catch (RestClientException e) {
+                                System.out.println("Error while making POST request: " + e.getMessage());
                             }
                         }
                     }
                 }
             }
-
-/*
-        // Send POST request for Teams and GitLab
-        String apiUrl = "https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("title", "API Changes");
-        jsonObject.put("description", response);
-
-        HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
-
-        ResponseEntity<String> postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
-
-        if (postResponse.getStatusCode().is2xxSuccessful()) {
-            System.out.println("POST request successful. Response: " + postResponse.getBody());
-        } else {
-            System.out.println("POST request failed. Response: " + postResponse.getBody());
-        }
-
-*/
 
         }
         return ResponseEntity.ok("API Change was successfully processed.");
