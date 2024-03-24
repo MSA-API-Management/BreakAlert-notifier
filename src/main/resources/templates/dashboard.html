@@ -86,17 +86,16 @@
     <div style="display: flex; flex-direction: column; align-items: center;">
         <button onclick="showTab('dashboard')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Dashboard</button>
         <button onclick="showTab('subscribe')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Subscribe</button>
-        <button onclick="showTab('client')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Client</button>
+        <button onclick="showTab('client')" style="width: 100px; margin-top: 20px; margin-left: 10px;">GitLab</button>
         <form th:action="@{/logout}" method="post">
             <button type="submit" style="width: 100px; margin-top: 20px; margin-left: 10px;">Logout</button>
         </form>
     </div>
 
     <div id="dashboardTab">
-        <ul class="dashboard-container">
+        <div class="dashboard-container">
             <h2>Welcome, <span style="margin-right: 0px;" th:text="${username}"></span>!</h2>
             <p>You can find all your subscriptions here.</p>
-            <br>
             <ul>
                 <li th:each="subscription : ${subscriptions}" style="border-top: 2px solid black; padding-top: 10px;">
                     <span th:text="${subscription.subName}" style="font-weight: bold; font-size: 20px;"></span>  <span th:text="${subscription.address}" style="font-weight: bold; font-size: 20px;"></span>
@@ -122,7 +121,7 @@
                 <br>
                 </li>
             </ul>
-        </ul>
+        </div>
     </div>
     <div id="subscribeTab" style="display: none;">
         <div class="dashboard-container">
@@ -162,11 +161,11 @@
 
     <div id="clientTab" style="display: none;">
         <div class="dashboard-container">
-            <h2>Register with a GitLab Client</h2>
+            <h2>Connect your account with a GitLab Client</h2>
             <form th:action="@{/saveToken}" method="post">
                 <label for="tokenLink">Enter your GitLab link:</label>
                 <input type="text" id="tokenLink" name="tokenLink">
-                <button type="submit">Save Token</button>
+                <button type="submit">Save</button>
             </form>
             <br>
             <div th:if="${tokenExists}">
