@@ -2,8 +2,13 @@ package com.kornfeld.notifier;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +17,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestTemplate;
 
 import java.security.Principal;
 import java.util.*;
@@ -23,12 +31,14 @@ public class DashboardController {
     private final SubscriptionRepository subscriptionRepository;
     @PersistenceContext
     private EntityManager entityManager;
+    private RestTemplate restTemplate;
 
     @Autowired
-    public DashboardController(UserRepository userRepository, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository) {
+    public DashboardController(UserRepository userRepository, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, RestTemplateBuilder restTemplate) {
         this.userRepository = userRepository;
         this.dataChangeRepository = dataChangeRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.restTemplate = restTemplate.build();
     }
     @GetMapping("/dashboard")
     public String showDashboard(Model model, @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -47,6 +57,14 @@ public class DashboardController {
         //System.out.println(userRepository.selectAllUsers().toString());
         AppUser appUser = getCurrentUser();
         Set<Subscription> subscriptions = appUser.getSubscriptions();
+
+        List<Subscription> toSubscribe = subscriptionRepository.findAll();
+        toSubscribe.removeAll(subscriptions);
+        model.addAttribute("toSubscribe", toSubscribe);
+
+        if(appUser.getToken()!=null || !appUser.getToken().isEmpty()){
+            model.addAttribute("tokenExists", true);
+        }
 
         Map<Long, Set<DataChange>> dataChangesMap = new HashMap<>();
         for (Subscription subscription : subscriptions) {
@@ -69,30 +87,64 @@ public class DashboardController {
 
     @PostMapping("/subscribe")
     @Transactional
-    public String subscribe(@RequestParam String subscriptionLink,@RequestParam String nameOfSub, Model model) {
-        System.out.println("subscriptionLink: "+subscriptionLink);
-        System.out.println("name: "+nameOfSub);
-
-        Subscription newSubscription = new Subscription();
-        newSubscription.setSubName(nameOfSub);
-        newSubscription.setAddress(subscriptionLink);
-
-        Subscription savedSubscription = subscriptionRepository.save(newSubscription);
-
+    public String subscribe(@RequestParam Long subscriptionId, Model model) {
+        Subscription subscription = subscriptionRepository.findById(subscriptionId).orElse(null);
         AppUser user = getCurrentUser();
-        entityManager.persist(user);
-
-        user.getSubscriptions().add(savedSubscription);
-
-        // DO REAL SUBSCRIBING HERE
-
-        if (savedSubscription != null) {
+        if (subscription != null) {
+            user.getSubscriptions().add(subscription);
             model.addAttribute("subscriptionSuccess", true);
-        }else{
+        } else {
             model.addAttribute("subscriptionError", true);
         }
+
+        Set<Subscription> subscriptions = user.getSubscriptions();
+        List<Subscription> toSubscribe = subscriptionRepository.findAll();
+        toSubscribe.removeAll(subscriptions);
+        model.addAttribute("toSubscribe", toSubscribe);
+
         return "redirect:/dashboard";
     }
+
+    @PostMapping("/saveToken")
+    @Transactional
+    public String saveToken(@RequestParam String tokenLink) {
+
+        // For testing: https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9
+
+        boolean gitLabAvailable = false;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", "Initialize Client");
+        jsonObject.put("description", "Test");
+
+        HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
+        ResponseEntity<String> postResponse;
+        try {
+            System.out.println("webUrl: " + tokenLink);
+            postResponse = restTemplate.postForEntity(tokenLink, entity, String.class);
+            if (postResponse.getStatusCode().is2xxSuccessful()) {
+                System.out.println("POST request successful. Response: " + postResponse.getBody());
+                gitLabAvailable = true;
+            } else {
+                System.out.println("POST request failed. Response: " + postResponse.getBody());
+            }
+        } catch (RestClientException e) {
+            System.out.println("Error while making POST request: " + e.getMessage());
+        }
+
+        if(gitLabAvailable){
+            AppUser user = getCurrentUser();
+            entityManager.persist(user);
+            user.setToken(tokenLink);
+            userRepository.save(user);
+        }
+
+        return "redirect:/dashboard";
+    }
+
 
     @PostMapping("/dashboard/deleteSubscription/{subscriptionId}")
     @Transactional
