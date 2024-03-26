@@ -22,8 +22,8 @@ public class Gpt35APIServiceTest {
     @Test
     public void testGenerateResponse_Successful() {
         // Stubbing the restTemplateMock.exchange() method call for a successful response
-        Mockito.when(restTemplateMock.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), Mockito.eq(String.class)));
-
+        Mockito.when(restTemplateMock.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), Mockito.eq(String.class)))
+                .thenReturn(ResponseEntity.ok().body("{\"test\": [{\"test123\": {\"content\": \"Response message\"}}]}"));
         String generatedResponse = gpt3ApiService.generateResponse(prompt);
         assertNotNull(generatedResponse);
         assertFalse(generatedResponse.isBlank());
