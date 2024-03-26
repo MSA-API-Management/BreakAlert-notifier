@@ -118,6 +118,8 @@ public class SubscriptionController {
     }
 
 
+
+
     private void setSubscription(Subscription newSubscription, AppUser user){
         Optional<Subscription> subscription = subscriptionRepository.findByAddressAndBranch(newSubscription.getAddress(), newSubscription.getBranch());
         if(!subscription.isPresent()){
@@ -130,6 +132,21 @@ public class SubscriptionController {
             System.out.println(newSubscription.getSubName() + " " + subscription.get().getId() + " already exists in DB with name " + subscription.get().getSubName() + " and ID " + subscription.get().getId());
             user.getSubscriptions().add(subscription.get());
             System.out.println("Created a connection from the user to the subscription.");
+        }
+    }
+
+    private void removeSubscriptions(AppUser user, Set<Subscription> allPrevSubscriptions, List<Subscription> subscriptionList){
+        for (Subscription sub : allPrevSubscriptions) {
+            System.out.println("SUB ID: " + sub.getId());
+        }
+        System.out.println("---- After Deletion: ");
+        user.getSubscriptions().removeIf(prevSub ->
+                subscriptionList.stream()
+                        .noneMatch(newSub ->
+                                newSub.getAddress().equals(prevSub.getAddress()) &&
+                                        newSub.getBranch().equals(prevSub.getBranch())));
+        for (Subscription sub : allPrevSubscriptions) {
+            System.out.println("SUB ID: " + sub.getId());
         }
     }
 

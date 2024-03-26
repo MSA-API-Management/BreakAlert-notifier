@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class EmailController {
 
     //form of dependency injection (created at runtime)
+
+    /* Email test curl:
+	curl -X POST -d "title=TestTitle&body=This is the body&toEmail=d.kornfeld11@gmail.com" http://localhost:8080/sendTest
+	 */
     @Autowired
     private EmailSender emailSender;
 
