@@ -21,14 +21,13 @@ import java.io.IOException;
 
 import java.time.LocalDateTime;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 
 @Controller
-public class GptController {
+public class NotificationController {
 
     private final Gpt3_5_API_Service gpt3ApiService;
     private final HTMLParser htmlParser;
@@ -46,7 +45,7 @@ public class GptController {
 
     private final UserRepository userRepository;
 
-    public GptController(Gpt3_5_API_Service gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
+    public NotificationController(Gpt3_5_API_Service gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
         this.gpt3ApiService = gpt3ApiService;
         this.htmlParser = htmlParser;
         this.restTemplate = restTemplate.build();
@@ -54,6 +53,15 @@ public class GptController {
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
     }
+
+    public void setRestTemplate(RestTemplateBuilder restTemplate) {
+        this.restTemplate = restTemplate.build();
+    }
+
+    public void setEmailSender(EmailSender emailSender) {
+        this.emailSender = emailSender;
+    }
+
     //Use RESTer tool to test it
     // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:30004/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
     @PostMapping("/generate-response")
@@ -91,42 +99,20 @@ public class GptController {
                     if (subscription.getAddress().equals(address) && subscription.getBranch().equals(branch)) {
                         if (user.getEmail()!=null) {
                             System.out.println("User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
-
                             System.out.println("Sending email... ");
                             emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
                         }
-                        System.out.println("Storing all info...");          // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
 
-                        dataChange.setSubscription(subscription);
-                        dataChange.setTimestamp(LocalDateTime.now());
-                        dataChangeRepository.save(dataChange);
-
+                        // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
+                        System.out.println("Storing all info...");
+                        storeDataChange(dataChange, subscription);
                         System.out.println("Stored data change successfully");
 
                         if(user.getToken()!=null) {
                             System.out.println("User is registered as a Client in GitLab");
-                            // Send POST request for Teams and GitLab
+                            // POST request for Teams and GitLab
                             String apiUrl = user.getToken();
-                            HttpHeaders headers = new HttpHeaders();
-                            headers.setContentType(MediaType.APPLICATION_JSON);
-
-                            JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("title", "API Changes");
-                            jsonObject.put("description", response);
-
-                            HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
-                            ResponseEntity<String> postResponse;
-                            try {
-                                System.out.println("webUrl: " + apiUrl);
-                                postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
-                                if (postResponse.getStatusCode().is2xxSuccessful()) {
-                                    System.out.println("POST request successful. Response: " + postResponse.getBody());
-                                } else {
-                                    System.out.println("POST request failed. Response: " + postResponse.getBody());
-                                }
-                            } catch (RestClientException e) {
-                                System.out.println("Error while making POST request: " + e.getMessage());
-                            }
+                            sendPostRequest(apiUrl, response, "API Changes");
                         }
                     }
                 }
@@ -135,5 +121,43 @@ public class GptController {
         }
         return ResponseEntity.ok("API Change was successfully processed.");
     }
+
+    private boolean sendPostRequest(String apiUrl, String response, String title) {
+        boolean successfulRequest = false;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", title);
+        jsonObject.put("description", response);
+
+        HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
+        ResponseEntity<String> postResponse;
+        try {
+            System.out.println("webUrl: " + apiUrl);
+            postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
+            if (postResponse != null) {
+                if (postResponse.getStatusCode().is2xxSuccessful()) {
+                    System.out.println("POST request successful. Response: " + postResponse.getBody());
+                    successfulRequest = true;
+                } else {
+                    System.out.println("POST request failed. Response: " + postResponse.getBody());
+                }
+            } else {
+                System.out.println("POST request failed. No response received.");
+            }
+        } catch (RestClientException e) {
+            System.out.println("Error while making POST request: " + e.getMessage());
+        }
+        return successfulRequest;
+    }
+
+    private void storeDataChange(DataChange dataChange, Subscription subscription){
+        dataChange.setSubscription(subscription);
+        dataChange.setTimestamp(LocalDateTime.now());
+        dataChangeRepository.save(dataChange);
+    }
+
 }
 

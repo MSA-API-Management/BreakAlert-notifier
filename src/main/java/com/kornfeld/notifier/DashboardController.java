@@ -111,6 +111,8 @@ public class DashboardController {
 
         // For testing: https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9
 
+        // Use other method for making post request
+
         boolean gitLabAvailable = false;
 
         HttpHeaders headers = new HttpHeaders();

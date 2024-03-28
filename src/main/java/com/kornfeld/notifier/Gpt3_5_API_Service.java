@@ -54,7 +54,6 @@ public class Gpt3_5_API_Service {
 
     public String generateResponse(String prompt) {
         System.out.println("Generating Response soon...");
-        System.out.println("Key: " + API_KEY);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(API_KEY);
@@ -87,13 +86,13 @@ public class Gpt3_5_API_Service {
     private static Map<String, Object> getRequestBody(String prompt) {
         List<Map<String, String>> messages = new ArrayList<>();
 
-        // Specify the role of the assistant
+        // Specifying role of the assistant
         Map<String, String> systemMessage = new HashMap<>();
         systemMessage.put("role", "system");
         systemMessage.put("content", DESCRIPTION);
         messages.add(systemMessage);
 
-        // Specify the prompt
+        // Specifying the prompt
         Map<String, String> userMessage = new HashMap<>();
         userMessage.put("role", "user");
         userMessage.put("content", prompt);
