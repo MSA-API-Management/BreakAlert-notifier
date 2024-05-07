@@ -17,7 +17,7 @@ public class EmailSenderTest {
     @InjectMocks
     private EmailSender emailSender;
 
-    private static final String fromEmail = "d.kornfeld30@gmail.com";
+    private static final String fromEmail = null;
     private static final String toEmail = "recipient@test.com";
     private static final String title = "Testing sending an email";
     private static final String body = "This is a test email.";
