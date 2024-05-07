@@ -59,4 +59,34 @@ public class AppUserTest {
         assertEquals(1, appUser.getSubscriptions().size());
     }
 
+    @Test
+    public void testGetAuthorities() {
+        assertTrue(appUser.getAuthorities().isEmpty());
+    }
+
+    @Test
+    public void testGetUsername() {
+        assertEquals(USERNAME, appUser.getUsername());
+    }
+
+    @Test
+    public void testIsAccountNonExpired() {
+        assertTrue(appUser.isAccountNonExpired());
+    }
+
+    @Test
+    public void testIsAccountNonLocked() {
+        assertTrue(appUser.isAccountNonLocked());
+    }
+
+    @Test
+    public void testIsCredentialsNonExpired() {
+        assertTrue(appUser.isCredentialsNonExpired());
+    }
+
+    @Test
+    public void testIsEnabled() {
+        assertTrue(appUser.isEnabled());
+    }
+
 }
