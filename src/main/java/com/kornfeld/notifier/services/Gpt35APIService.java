@@ -17,7 +17,7 @@ import java.util.*;
 // Open API Key:
 // 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
 @Service
-public class Gpt3_5APIService {
+public class Gpt35APIService {
     private String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
     @Value("${GPT_API_KEY}")

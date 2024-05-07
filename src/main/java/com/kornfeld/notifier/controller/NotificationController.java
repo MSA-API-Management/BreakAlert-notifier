@@ -1,7 +1,7 @@
 package com.kornfeld.notifier.controller;
 
 import com.kornfeld.notifier.services.EmailSender;
-import com.kornfeld.notifier.services.Gpt3_5APIService;
+import com.kornfeld.notifier.services.Gpt35APIService;
 import com.kornfeld.notifier.services.HTMLParser;
 import com.kornfeld.notifier.entities.AppUser;
 import com.kornfeld.notifier.entities.DataChange;
@@ -39,7 +39,7 @@ import java.util.Set;
 @Controller
 public class NotificationController {
 
-    private final Gpt3_5APIService gpt3ApiService;
+    private final Gpt35APIService gpt3ApiService;
     private final HTMLParser htmlParser;
     @Autowired
     private EmailSender emailSender;
@@ -55,7 +55,7 @@ public class NotificationController {
 
     private final UserRepository userRepository;
 
-    public NotificationController(Gpt3_5APIService gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
+    public NotificationController(Gpt35APIService gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
         this.gpt3ApiService = gpt3ApiService;
         this.htmlParser = htmlParser;
         this.restTemplate = restTemplate.build();

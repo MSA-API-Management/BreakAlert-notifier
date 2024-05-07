@@ -8,7 +8,7 @@ import com.kornfeld.notifier.repositories.DataChangeRepository;
 import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.EmailSender;
-import com.kornfeld.notifier.services.Gpt3_5APIService;
+import com.kornfeld.notifier.services.Gpt35APIService;
 import com.kornfeld.notifier.services.HTMLParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 
 public class NotificationControllerTest {
     @Mock
-    private Gpt3_5APIService gpt3ApiService;
+    private Gpt35APIService gpt3ApiService;
 
     @Mock
     private HTMLParser htmlParser;
