@@ -1,5 +1,15 @@
 package com.kornfeld.notifier;
 
+import com.kornfeld.notifier.controller.NotificationController;
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.entities.DataChange;
+import com.kornfeld.notifier.entities.Subscription;
+import com.kornfeld.notifier.repositories.DataChangeRepository;
+import com.kornfeld.notifier.repositories.SubscriptionRepository;
+import com.kornfeld.notifier.repositories.UserRepository;
+import com.kornfeld.notifier.services.EmailSender;
+import com.kornfeld.notifier.services.Gpt3_5APIService;
+import com.kornfeld.notifier.services.HTMLParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -21,7 +31,7 @@ import static org.mockito.Mockito.*;
 
 public class NotificationControllerTest {
     @Mock
-    private Gpt3_5_API_Service gpt3ApiService;
+    private Gpt3_5APIService gpt3ApiService;
 
     @Mock
     private HTMLParser htmlParser;

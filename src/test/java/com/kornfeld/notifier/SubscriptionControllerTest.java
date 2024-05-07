@@ -1,5 +1,11 @@
 package com.kornfeld.notifier;
 
+import com.kornfeld.notifier.controller.SubscriptionController;
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.entities.Subscription;
+import com.kornfeld.notifier.repositories.DataChangeRepository;
+import com.kornfeld.notifier.repositories.SubscriptionRepository;
+import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

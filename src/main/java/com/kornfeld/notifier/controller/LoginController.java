@@ -1,11 +1,11 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.controller;
 
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.repositories.UserRepository;
+import com.kornfeld.notifier.services.AuthenticationService;
+import com.kornfeld.notifier.services.JWTService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

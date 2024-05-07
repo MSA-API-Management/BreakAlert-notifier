@@ -1,5 +1,6 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.controller;
 
+import com.kornfeld.notifier.services.EmailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;

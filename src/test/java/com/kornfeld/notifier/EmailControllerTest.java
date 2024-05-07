@@ -1,5 +1,6 @@
 package com.kornfeld.notifier;
 
+import com.kornfeld.notifier.services.EmailSender;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

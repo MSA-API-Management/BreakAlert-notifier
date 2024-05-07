@@ -1,6 +1,6 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.entities;
 
-import jakarta.annotation.Nullable;
+import com.kornfeld.notifier.entities.DataChange;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;

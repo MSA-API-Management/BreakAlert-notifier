@@ -1,5 +1,6 @@
 package com.kornfeld.notifier;
 
+import com.kornfeld.notifier.services.Gpt3_5APIService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -10,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class Gpt35APIServiceTest {
     private static final String prompt = "\nWhat's New:\nGET/Test null \n\nWhat's Deleted:\n\n\nWhat's Deprecated:\n\n\nWhat's Changed:\n";
     private RestTemplate restTemplateMock;
-    private Gpt3_5_API_Service gpt3ApiService;
+    private Gpt3_5APIService gpt3ApiService;
     @BeforeEach
     public void setUp() {
         restTemplateMock = Mockito.mock(RestTemplate.class);
-        gpt3ApiService = new Gpt3_5_API_Service();
+        gpt3ApiService = new Gpt3_5APIService();
         gpt3ApiService.setRestTemplate(restTemplateMock);
         gpt3ApiService.setAPI_KEY("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");
     }

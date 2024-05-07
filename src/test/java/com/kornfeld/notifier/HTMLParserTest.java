@@ -1,5 +1,6 @@
 package com.kornfeld.notifier;
 
+import com.kornfeld.notifier.services.HTMLParser;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;

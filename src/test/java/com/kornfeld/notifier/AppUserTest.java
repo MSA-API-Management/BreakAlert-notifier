@@ -1,5 +1,7 @@
 package com.kornfeld.notifier;
 
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.entities.Subscription;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

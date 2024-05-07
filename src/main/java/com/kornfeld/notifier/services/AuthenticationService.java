@@ -1,5 +1,7 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.services;
 
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.repositories.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;

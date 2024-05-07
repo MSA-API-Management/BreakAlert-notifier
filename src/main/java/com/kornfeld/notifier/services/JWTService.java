@@ -1,4 +1,4 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.services;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

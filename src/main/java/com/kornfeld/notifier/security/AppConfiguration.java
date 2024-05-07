@@ -1,5 +1,7 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.security;
 
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

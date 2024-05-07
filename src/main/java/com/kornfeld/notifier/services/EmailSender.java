@@ -1,4 +1,4 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

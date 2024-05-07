@@ -1,5 +1,10 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.controller;
 
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.entities.Subscription;
+import com.kornfeld.notifier.repositories.DataChangeRepository;
+import com.kornfeld.notifier.repositories.SubscriptionRepository;
+import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;

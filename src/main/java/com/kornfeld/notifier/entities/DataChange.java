@@ -1,4 +1,4 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

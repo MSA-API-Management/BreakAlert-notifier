@@ -1,5 +1,14 @@
-package com.kornfeld.notifier;
+package com.kornfeld.notifier.controller;
 
+import com.kornfeld.notifier.services.EmailSender;
+import com.kornfeld.notifier.services.Gpt3_5APIService;
+import com.kornfeld.notifier.services.HTMLParser;
+import com.kornfeld.notifier.entities.AppUser;
+import com.kornfeld.notifier.entities.DataChange;
+import com.kornfeld.notifier.entities.Subscription;
+import com.kornfeld.notifier.repositories.DataChangeRepository;
+import com.kornfeld.notifier.repositories.SubscriptionRepository;
+import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.json.JSONObject;
@@ -30,7 +39,7 @@ import java.util.Set;
 @Controller
 public class NotificationController {
 
-    private final Gpt3_5_API_Service gpt3ApiService;
+    private final Gpt3_5APIService gpt3ApiService;
     private final HTMLParser htmlParser;
     @Autowired
     private EmailSender emailSender;
@@ -46,7 +55,7 @@ public class NotificationController {
 
     private final UserRepository userRepository;
 
-    public NotificationController(Gpt3_5_API_Service gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
+    public NotificationController(Gpt3_5APIService gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
         this.gpt3ApiService = gpt3ApiService;
         this.htmlParser = htmlParser;
         this.restTemplate = restTemplate.build();
