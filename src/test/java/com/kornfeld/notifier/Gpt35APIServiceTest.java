@@ -16,7 +16,7 @@ public class Gpt35APIServiceTest {
         restTemplateMock = Mockito.mock(RestTemplate.class);
         gpt3ApiService = new Gpt3_5_API_Service();
         gpt3ApiService.setRestTemplate(restTemplateMock);
-        gpt3ApiService.setAPI_KEY("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");
+        gpt3ApiService.setAPI_KEY("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");
     }
 
     @Test

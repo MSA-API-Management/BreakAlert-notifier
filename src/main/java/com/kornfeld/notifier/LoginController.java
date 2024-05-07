@@ -1,24 +1,33 @@
 package com.kornfeld.notifier;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.security.Principal;
 import java.util.List;
-import java.util.Set;
 
 @Controller
 public class LoginController {
 
     private final UserRepository userRepository;
+    private final JWTService jwtService;
+    private final AuthenticationService authenticationService;
+
     @Autowired
-    public LoginController(UserRepository userRepository) {
+    public LoginController(UserRepository userRepository, JWTService jwtService, AuthenticationService authenticationService) {
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
+        this.authenticationService = authenticationService;
     }
 
     @GetMapping("")
@@ -59,31 +68,15 @@ public class LoginController {
     }
 
     @PostMapping("/loginPage")
-    public String processLogin(String username, String password, Model model) {
-        AppUser dbAppUser = userRepository.findByName(username);
-        if (dbAppUser != null) {
-            String dbPassword = dbAppUser.getPassword();
-            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            // ADMIN not encoded (Testing purposes)
-            if(password.equals(dbPassword)){
-                System.out.println("not encoded admin " + dbAppUser.getName());
-                model.addAttribute("username", username);
-                return "redirect:/dashboard";
-            }
-            // USER encoded
-            else if (passwordEncoder.matches(password, dbPassword)) {
-                System.out.println(dbAppUser.getName());
-                model.addAttribute("username", username);
-                return "redirect:/dashboard";
-            }else{
-                System.out.println("Failed to log in");
-                model.addAttribute("error", "Invalid credentials");
-                return "loginPage";
-            }
+    public String processLogin(@RequestParam("username") String username, @RequestParam("password") String password, RedirectAttributes redirectAttributes, HttpServletRequest request, Model model) {
+        AppUser authenticatedUser = authenticationService.authenticate(username, password);
+        if (authenticatedUser != null) {
+            String jwtToken = jwtService.generateToken(authenticatedUser);
+
+            redirectAttributes.addAttribute("token", jwtToken);
+            return "redirect:/dashboard";
         } else {
-            System.out.println("Failed to log in");
-            model.addAttribute("error", "Invalid credentials");
-            return "loginPage";
+            return "index";
         }
     }
 

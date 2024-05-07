@@ -74,13 +74,7 @@
         }
 
     </style>
-    <script>
-        function showTab(tabName) {
-            document.getElementById("dashboardTab").style.display = tabName === "dashboard" ? "block" : "none";
-            document.getElementById("subscribeTab").style.display = tabName === "subscribe" ? "block" : "none";
-            document.getElementById("clientTab").style.display = tabName === "client" ? "block" : "none";
-        }
-    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
     <div style="display: flex; flex-direction: column; align-items: center;">
@@ -88,7 +82,7 @@
         <button onclick="showTab('subscribe')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Subscribe</button>
         <button onclick="showTab('client')" style="width: 100px; margin-top: 20px; margin-left: 10px;">GitLab</button>
         <form th:action="@{/logout}" method="post">
-            <button type="submit" style="width: 100px; margin-top: 40px; margin-left: 10px;">Logout</button>
+            <button type="submit" style="width: 100px; margin-top: 40px; margin-left: 10px;" onclick="clearToken()">Logout</button>
         </form>
     </div>
 
@@ -103,10 +97,12 @@
                     <br><br>
                     <div>
                         <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" style="display: inline-block; margin-right: 10px;">
+                            <input type="hidden" name="jwtToken">
                             <button type="submit">Unsubscribe</button>
                         </form>
                         <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post" style="display: inline-block; margin-left: 40px;">
                             <label for="newName">Change name of subscription:</label>
+                            <input type="hidden" name="jwtToken">
                             <input type="text" id="newName" name="newName" required>
                             <button type="submit">Change Name</button>
                         </form>
@@ -144,17 +140,18 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="subscription : ${toSubscribe}">
-                    <td th:text="${subscription.subName}">Subscription Name</td>
-                    <td th:text="${subscription.address}">Subscription Address</td>
-                    <td th:text="${subscription.branch}">Subscription Branch</td>
-                    <td class="centered">
+                    <tr th:each="subscription,iStat : ${toSubscribe}">
                         <form th:action="@{/subscribe}" method="post">
-                            <input type="hidden" name="subscriptionId" th:value="${subscription.id}">
-                            <button type="submit">Subscribe</button>
+                            <td th:text="${subscription.subName}">Subscription Name</td>
+                            <td th:text="${subscription.address}">Subscription Address</td>
+                            <td th:text="${subscription.branch}">Subscription Branch</td>
+                            <td class="centered">
+                                <input type="hidden" name="subscriptionId" th:value="${subscription.id}">
+                                <input type="hidden" name="jwtToken">
+                                <button type="submit">Subscribe</button>
+                            </td>
                         </form>
-                    </td>
-                </tr>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -166,6 +163,7 @@
             <form th:action="@{/saveToken}" method="post">
                 <label for="tokenLink">Enter your GitLab link:</label>
                 <input type="text" id="tokenLink" name="tokenLink">
+                <input type="hidden" name="jwtToken">
                 <button type="submit">Save</button>
             </form>
             <br>
@@ -178,6 +176,44 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function showTab(tabName) {
+            document.getElementById("dashboardTab").style.display = tabName === "dashboard" ? "block" : "none";
+            document.getElementById("subscribeTab").style.display = tabName === "subscribe" ? "block" : "none";
+            document.getElementById("clientTab").style.display = tabName === "client" ? "block" : "none";
+        }
+
+        function storeToken(token) {
+            console.log("stored token");
+            localStorage.setItem('jwtToken', token);
+
+            var jwtTokenInputs = document.getElementsByName("jwtToken");
+            for (var i = 0; i < jwtTokenInputs.length; i++) {
+                jwtTokenInputs[i].value = localStorage.getItem("jwtToken");
+            }
+        }
+
+        function clearToken() {
+            console.log("Clear Token");
+            localStorage.removeItem('jwtToken');
+        }
+
+        window.onload = function() {
+            console.log("on start up");
+            const urlParams = new URLSearchParams(window.location.search);
+            token = urlParams.get('token');
+            console.log("Token: " + token);
+            if (token) {
+                storeToken(token);
+                // Remove the token parameter from the URL
+                window.history.replaceState({}, document.title, "/dashboard");
+                document.getElementById("tokenInput").value = token;
+            }
+        };
+
+    </script>
+
 </body>
 </html>
 
