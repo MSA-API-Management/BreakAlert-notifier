@@ -18,11 +18,7 @@ public class EmailController {
     private EmailSender emailSender;
 
     @PostMapping("/sendTest")
-    public String sendTestEmail(
-            @RequestParam String title,
-            @RequestParam String body,
-            @RequestParam String toEmail
-    ) {
+    public String sendTestEmail(@RequestParam String title, @RequestParam String body, @RequestParam String toEmail) {
         System.out.println("sending...");
         emailSender.sendEmail(toEmail, title, body);
         return "Email sent";

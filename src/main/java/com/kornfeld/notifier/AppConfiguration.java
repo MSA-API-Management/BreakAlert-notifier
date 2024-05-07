@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
+// Needed to prevent errors of circular referencing
 @Configuration
 public class AppConfiguration {
     private final UserRepository userRepository;

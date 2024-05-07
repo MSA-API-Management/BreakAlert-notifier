@@ -50,7 +50,7 @@ public class DashboardController {
     }
     @GetMapping("/dashboard")
     @Transactional
-    public String showDashboard(Model model, @AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam("token") String jwtToken) {
+    public String showDashboard(Model model, @RequestParam("token") String jwtToken) {
         System.out.println("Redirecter");
 
         AppUser appUser = getCurrentUser(jwtToken);
@@ -214,13 +214,11 @@ public class DashboardController {
     }
 
     private void setAuthentication(AppUser user){
-        UserDetails userDetails = new CustomUserDetails(user);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+        // To receive info about current user:
+        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // AppUser currentUser = (AppUser) authentication.getPrincipal();
     }
-
-    // To receive info about current user:
-    // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    // CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
-
 }
