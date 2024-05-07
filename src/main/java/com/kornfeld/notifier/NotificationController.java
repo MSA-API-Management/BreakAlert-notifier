@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,6 +66,7 @@ public class NotificationController {
     //Use RESTer tool to test it
     // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:30004/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
     @PostMapping("/generate-response")
+    @Transactional
     public ResponseEntity<String> generateResponse(
             @RequestBody String htmlContent,
             @RequestParam(value = "address") String address,
