@@ -34,7 +34,7 @@ public class DashboardController {
     private final SubscriptionRepository subscriptionRepository;
     @PersistenceContext
     private EntityManager entityManager;
-    private final RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     private final JWTService jwtService;
 
@@ -46,6 +46,15 @@ public class DashboardController {
         this.restTemplate = restTemplate.build();
         this.jwtService = jwtService;
     }
+
+    public void setRestTemplate(RestTemplateBuilder restTemplate) {
+        this.restTemplate = restTemplate.build();
+    }
+
+    public void setEntityManager(EntityManager entityManager){
+        this.entityManager = entityManager;
+    }
+
     @GetMapping("/dashboard")
     @Transactional
     public String showDashboard(Model model, @RequestParam("token") String jwtToken) {

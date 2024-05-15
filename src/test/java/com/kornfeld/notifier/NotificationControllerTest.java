@@ -12,12 +12,11 @@ import com.kornfeld.notifier.services.Gpt35APIService;
 import com.kornfeld.notifier.services.HTMLParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -70,8 +69,8 @@ public class NotificationControllerTest {
         controller.setRestTemplate(restTemplateBuilder);
     }
 
-    @Test
-    public void testGenerateResponse_SubscriptionFound() throws IOException {
+
+    private void testGenerateResponse() throws IOException {
         SubscriptionFoundSetUp();
 
         when(subscriptionRepository.findByAddressAndBranch(eq("testing.com"), eq("main"))).thenReturn(Optional.of(subscription));
@@ -99,6 +98,34 @@ public class NotificationControllerTest {
         assertEquals(dataChange.getTitle(), savedDataChange.getTitle());
         assertEquals(dataChange.getContent(), savedDataChange.getContent());
         assertEquals("API Change was successfully processed.", responseEntity.getBody());
+    }
+
+    @Test
+    public void testGenerateResponse_SubscriptionFound_Successful() throws IOException {
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenReturn(new ResponseEntity<String>("testBody", HttpStatus.OK));
+
+        testGenerateResponse();
+    }
+
+    @Test
+    public void testGenerateResponse_SubscriptionFound_NotSuccessful() throws IOException {
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenReturn(new ResponseEntity<String>("testBody", HttpStatus.BAD_GATEWAY));
+
+        testGenerateResponse();
+    }
+
+    @Test
+    public void testGenerateResponse_SubscriptionFound_Error() throws IOException {
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenReturn(null);
+
+        testGenerateResponse();
+    }
+
+    @Test
+    public void testGenerateResponse_SubscriptionFound_Exception() throws IOException {
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenThrow(RestClientException.class);
+
+        testGenerateResponse();
     }
 
     @Test

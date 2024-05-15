@@ -20,7 +20,7 @@ public class Gpt35APIServiceTest {
         gpt3ApiService.setAPI_KEY("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");
     }
 
-   /* @Test
+    /*@Test
     public void testGenerateResponse_Successful() {
         // Stubbing the restTemplateMock.exchange() method call for a successful response
         Mockito.when(restTemplateMock.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), Mockito.eq(String.class)))
@@ -28,7 +28,7 @@ public class Gpt35APIServiceTest {
         String generatedResponse = gpt3ApiService.generateResponse(prompt);
         assertNotNull(generatedResponse);
         assertFalse(generatedResponse.isBlank());
-    } */
+    }*/
 
     @Test
     public void testGenerateResponse_ErrorProcessingApiResponse() {

@@ -29,7 +29,7 @@ public class AppConfiguration {
     }
 
     @Bean
-    UserDetailsService userDetailsService() {
+    public UserDetailsService userDetailsService() {
         return name -> {
             Optional<AppUser> userOptional = Optional.ofNullable(userRepository.findByName(name));
             if (userOptional.isPresent()) {
