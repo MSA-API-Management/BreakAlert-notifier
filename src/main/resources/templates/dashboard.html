@@ -94,6 +94,7 @@
                 <li th:each="subscription : ${subscriptions}" style="border-top: 2px solid black; padding-top: 10px;">
                     <span th:text="${subscription.subName}" style="font-weight: bold; font-size: 20px;"></span>
                     <span th:text="${subscription.address}" style="font-weight: bold; font-size: 20px;"></span>
+                    <span th:text="${subscription.branch}" style="font-weight: bold; font-size: 20px;"></span>
                     <br><br>
                     <div>
                         <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" style="display: inline-block; margin-right: 10px;">
