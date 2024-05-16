@@ -5,75 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-        }
-        .dashboard-container {
-            width: 150vh;
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-right: 10px;
-            margin-left: 10px;
-        }
-        h2 {
-            color: #333;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            margin-bottom: 10px;
-        }
-        h2 span, li span:nth-child(-n + 2) {
-            margin-right: 20px;
-        }
-        #content{
-            margin-top: 10px;
-            white-space: pre-line;
-        }
-        button {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #3498db;
-            color: #fff;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th {
-            background-color: #3498db;
-            color: #fff;
-            text-align: left;
-            padding: 8px;
-        }
-        td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px;
-        }
-        td.centered, th.centered {
-            text-align: center;
-        }
-        #tokenLink {
-            width: 50%;
-        }
-
-    </style>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
@@ -178,42 +110,7 @@
         </div>
     </div>
 
-    <script>
-        function showTab(tabName) {
-            document.getElementById("dashboardTab").style.display = tabName === "dashboard" ? "block" : "none";
-            document.getElementById("subscribeTab").style.display = tabName === "subscribe" ? "block" : "none";
-            document.getElementById("clientTab").style.display = tabName === "client" ? "block" : "none";
-        }
-
-        function storeToken(token) {
-            console.log("stored token");
-            localStorage.setItem('jwtToken', token);
-
-            var jwtTokenInputs = document.getElementsByName("jwtToken");
-            for (var i = 0; i < jwtTokenInputs.length; i++) {
-                jwtTokenInputs[i].value = localStorage.getItem("jwtToken");
-            }
-        }
-
-        function clearToken() {
-            console.log("Clear Token");
-            localStorage.removeItem('jwtToken');
-        }
-
-        window.onload = function() {
-            console.log("on start up");
-            const urlParams = new URLSearchParams(window.location.search);
-            token = urlParams.get('token');
-            console.log("Token: " + token);
-            if (token) {
-                storeToken(token);
-                // Remove the token parameter from the URL
-                window.history.replaceState({}, document.title, "/dashboard");
-                document.getElementById("tokenInput").value = token;
-            }
-        };
-
-    </script>
+    <script type="text/javascript" th:src="@{/js/dashboard.js}"></script>
 
 </body>
 </html>

@@ -126,6 +126,22 @@ public class LoginControllerTest {
         verify(redirectAttributes, never()).addAttribute(eq("token"), anyString());
     }
 
+    @Test
+    void testProcessLogin_BadCredentials() {
+        setUpUser();
+        user.setId(1L);
+        RedirectAttributes redirectAttributes = mock(RedirectAttributes.class);
+        Exception exception = new RuntimeException("Bad Credentials");
+
+        when(authenticationService.authenticate(USERNAME, "PASSWORD")).thenThrow(exception);
+
+        String returnVal = loginController.processLogin(USERNAME, "PASSWORD", redirectAttributes, null, model);
+
+        assertEquals("error", returnVal);
+
+        verify(model).addAttribute("credentials", true);
+    }
+
     public void setUpUser(){
         user.setName(USERNAME);
         user.setEmail(EMAIL);

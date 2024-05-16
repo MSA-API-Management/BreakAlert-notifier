@@ -69,14 +69,19 @@ public class LoginController {
 
     @PostMapping("/loginPage")
     public String processLogin(@RequestParam("username") String username, @RequestParam("password") String password, RedirectAttributes redirectAttributes, HttpServletRequest request, Model model) {
-        AppUser authenticatedUser = authenticationService.authenticate(username, password);
-        if (authenticatedUser != null) {
-            String jwtToken = jwtService.generateToken(authenticatedUser);
+        try {
+            AppUser authenticatedUser = authenticationService.authenticate(username, password);
+            if (authenticatedUser != null) {
+                String jwtToken = jwtService.generateToken(authenticatedUser);
 
-            redirectAttributes.addAttribute("token", jwtToken);
-            return "redirect:/dashboard";
-        } else {
-            return "index";
+                redirectAttributes.addAttribute("token", jwtToken);
+                return "redirect:/dashboard";
+            } else {
+                return "index";
+            }
+        } catch (Exception e){
+            model.addAttribute("credentials",true);
+            return "error";
         }
     }
 

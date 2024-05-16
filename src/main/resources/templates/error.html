@@ -1,46 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Something went wrong</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-
-        h1 {
-            color: #333;
-            margin-right: 10px;
-        }
-        a {
-            display: inline-block;
-            margin-top: 10px;
-            text-decoration: none;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #3498db;
-            color: #fff;
-        }
-        a:hover {
-            background-color: #2980b9;
-        }
-
-    </style>
-
+    <link rel="stylesheet" th:href="@{/css/error.css}" />
 </head>
 <body>
-<h1>Something went wrong...</h1>
-<div>
-<h3><a href="/" class="btn btn-primary">Go to start</a></h3>
-</div>
+    <h1>Something went wrong...</h1>
+    <h4 th:if="${credentials}">You entered bad credentials</h4>
+    <h3><a href="/" class="btn btn-primary">Go to start</a></h3>
+
 </body>
 </html>
