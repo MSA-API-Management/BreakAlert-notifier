@@ -157,8 +157,20 @@ public class DashboardController {
             userRepository.save(user);
         }
         model.addAttribute("urlFalse", false);
+        redirectAttributes.addAttribute("gitLabAvailable", gitLabAvailable);
         redirectAttributes.addAttribute("token", jwtToken);
-        return "redirect:/dashboard";
+        return "redirect:/clientConfirmation";
+    }
+
+    @GetMapping("/clientConfirmation")
+    public String clientConfirmation(Model model, @RequestParam("token") String jwtToken, @RequestParam("gitLabAvailable") boolean gitLabAvailable, RedirectAttributes redirectAttributes) {
+        if (gitLabAvailable){
+            model.addAttribute("urlCorrect", true);
+        } else {
+            model.addAttribute("urlWrong", true);
+        }
+        redirectAttributes.addAttribute("token", jwtToken);
+        return "confirmClient";
     }
 
 

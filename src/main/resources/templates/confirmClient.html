@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Something went wrong</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-width: 500px;
+        }
+        label {
+            margin-bottom: 5px;
+            align-self: flex-start;
+            width: 150px;
+            box-sizing: border-box;
+        }
+        outerDiv {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: #fff;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: #fff;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+    </style>
+
+</head>
+<body>
+<div th:if="${urlCorrect}">
+    <form th:action="@{/dashboard}" method="get">
+        <h1>GitLab Client successfully added!</h1>
+        <h4>You can still change the URL if you want to.</h4>
+        <div>
+            <input type="hidden" name="token">
+            <input type="submit" value="Go Back To Dashboard">
+        </div>
+    </form>
+</div>
+<div th:if="${urlWrong}" name="outerDiv">
+    <form th:action="@{/dashboard}" method="get">
+        <h1>Something went wrong when adding your GitLab Client</h1>
+        <h4>Your entered URL might not be correct. Try again later or enter a different URL.</h4>
+        <div>
+        <input type="hidden" name="token">
+        <input type="submit" value="Go Back To Dashboard">
+        </div>
+    </form>
+</div>
+
+<script>
+    function storeToken(token) {
+        console.log("stored token");
+        localStorage.setItem('jwtToken', token);
+
+        var jwtTokenInputs = document.getElementsByName("token");
+        for (var i = 0; i < jwtTokenInputs.length; i++) {
+            jwtTokenInputs[i].value = localStorage.getItem("jwtToken");
+        }
+    }
+
+    function clearToken() {
+        console.log("Clear Token");
+        localStorage.removeItem('jwtToken');
+    }
+
+    window.onload = function() {
+        console.log("on start up");
+        const urlParams = new URLSearchParams(window.location.search);
+        token = urlParams.get('token');
+        console.log("Token: " + token);
+        if (token) {
+            storeToken(token);
+            // Remove the token parameter from the URL
+            window.history.replaceState({}, document.title, "/dashboard");
+            document.getElementById("tokenInput").value = token;
+        }
+    };
+</script>
+
+</body>
+</html>
