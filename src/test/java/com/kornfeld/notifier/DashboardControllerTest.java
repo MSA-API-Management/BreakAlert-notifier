@@ -155,7 +155,7 @@ public class DashboardControllerTest {
 
         String returnVal = dashboardController.saveToken("tokenLink", JWT_TOKEN, redirectAttributes, model);
 
-        assertEquals("redirect:/dashboard", returnVal);
+        assertEquals("redirect:/clientConfirmation", returnVal);
 
         verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("urlFalse"), eq(false));
@@ -169,7 +169,7 @@ public class DashboardControllerTest {
 
         String returnVal = dashboardController.saveToken("tokenLink", JWT_TOKEN, redirectAttributes, model);
 
-        assertEquals("redirect:/dashboard", returnVal);
+        assertEquals("redirect:/clientConfirmation", returnVal);
 
         verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("urlFalse"), eq(true));
@@ -182,11 +182,33 @@ public class DashboardControllerTest {
 
         String returnVal = dashboardController.saveToken("tokenLink", JWT_TOKEN, redirectAttributes, model);
 
-        assertEquals("redirect:/dashboard", returnVal);
+        assertEquals("redirect:/clientConfirmation", returnVal);
 
         verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("urlFalse"), eq(true));
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    public void testClientConfirmationWithGitLabAvailable() {
+        boolean gitLabAvailable = true;
+        String result = dashboardController.clientConfirmation(model, JWT_TOKEN, gitLabAvailable, redirectAttributes);
+
+        assertEquals("confirmClient", result);
+
+        verify(model).addAttribute("urlCorrect", true);
+        verify(redirectAttributes).addAttribute("token", JWT_TOKEN);
+    }
+
+    @Test
+    public void testClientConfirmationWithGitLabNotAvailable() {
+        boolean gitLabAvailable = false;
+        String result = dashboardController.clientConfirmation(model, JWT_TOKEN, gitLabAvailable, redirectAttributes);
+
+        assertEquals("confirmClient", result);
+
+        verify(model).addAttribute("urlWrong", true);
+        verify(redirectAttributes).addAttribute("token", JWT_TOKEN);
     }
 
     @Test
