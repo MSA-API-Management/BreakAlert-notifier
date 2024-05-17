@@ -10,8 +10,8 @@
 		<h1>Welcome to to the Notifier Application</h1>
 		<h3><a th:href="@{/register}" class="btn btn-primary">Register</a></h3>
 		<h3><a th:href="@{/loginPage}" class="btn btn-primary">Login</a></h3>
-        <p th:if="${successMessage}" th:text="${successMessage}" style="color: green;"></p>
-        <p th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></p>
+        <p th:if="${successMessage}" th:text="${successMessage}" id="success"></p>
+        <p th:if="${errorMessage}" th:text="${errorMessage}" id="error"></p>
 	</div>
 </body>
 </html>

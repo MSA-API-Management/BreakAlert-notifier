@@ -9,31 +9,31 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
-    <div style="display: flex; flex-direction: column; align-items: center;">
-        <button onclick="showTab('dashboard')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Dashboard</button>
-        <button onclick="showTab('subscribe')" style="width: 100px; margin-top: 20px; margin-left: 10px;">Subscribe</button>
-        <button onclick="showTab('client')" style="width: 100px; margin-top: 20px; margin-left: 10px;">GitLab</button>
+    <div id="sidebar">
+        <button onclick="showTab('dashboard')" class="sidebarButtons">Dashboard</button>
+        <button onclick="showTab('subscribe')" class="sidebarButtons">Subscribe</button>
+        <button onclick="showTab('client')" class="sidebarButtons">GitLab</button>
         <form th:action="@{/logout}" method="post">
-            <button type="submit" style="width: 100px; margin-top: 40px; margin-left: 10px;" onclick="clearToken()">Logout</button>
+            <button type="submit" id="logoutButton" onclick="clearToken()">Logout</button>
         </form>
     </div>
 
     <div id="dashboardTab">
         <div class="dashboard-container">
-            <h2>Welcome, <span style="margin-right: 0px;" th:text="${username}"></span>!</h2>
+            <h2>Welcome, <span id="greeting" th:text="${username}"></span>!</h2>
             <p>You can find all your subscriptions here.</p>
             <ul>
-                <li th:each="subscription : ${subscriptions}" style="border-top: 2px solid black; padding-top: 10px;" class="subscription-item">
-                    <span th:text="${subscription.subName}" style="font-weight: bold; font-size: 20px;"></span>
-                    <span th:text="${subscription.address}" style="font-weight: bold; font-size: 20px;"></span>
-                    <span th:text="${subscription.branch}" style="font-weight: bold; font-size: 20px;"></span>
+                <li th:each="subscription : ${subscriptions}" class="subscription-item">
+                    <span th:text="${subscription.subName}" class="subscription-description"></span>
+                    <span th:text="${subscription.address}" class="subscription-description"></span>
+                    <span th:text="${subscription.branch}" class="subscription-description"></span>
                     <br><br>
                     <div>
-                        <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" style="display: inline-block; margin-right: 10px;">
+                        <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" id="deleteForm">
                             <input type="hidden" name="jwtToken">
                             <button type="submit">Unsubscribe</button>
                         </form>
-                        <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post" style="display: inline-block; margin-left: 40px;">
+                        <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post" id="changeNameForm">
                             <label for="newName">Change name of subscription:</label>
                             <input type="hidden" name="jwtToken">
                             <input type="text" id="newName" name="newName" required>
@@ -43,9 +43,9 @@
                     <br>
                     <button class="toggle-button">Show Data Changes</button>
                     <br><br>
-                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}" class="data-changes" style="display: none;">
-                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}" style="border-top: 1px dotted black; padding-top: 5px;">
-                        <span th:text="${dataChanges.title}" style="font-weight: bold"></span>
+                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}" class="data-changes">
+                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
+                        <span th:text="${dataChanges.title}" id="dataChangeText"></span>
                             <span th:text="${dataChanges.timestamp}"></span><br>
                             <div th:text="${dataChanges.content}" id="content"></div><br>
                         </li>
@@ -55,7 +55,7 @@
             </ul>
         </div>
     </div>
-    <div id="subscribeTab" style="display: none;">
+    <div id="subscribeTab" class="hide">
         <div class="dashboard-container">
             <h2>Subscriptions</h2>
             <p>You can find all repos you can subscribe to here.</p>
@@ -92,7 +92,7 @@
         </div>
     </div>
 
-    <div id="clientTab" style="display: none;">
+    <div id="clientTab" class="hide">
         <div class="dashboard-container">
             <h2>Connect your account with a GitLab Client</h2>
             <form th:action="@{/saveToken}" method="post">

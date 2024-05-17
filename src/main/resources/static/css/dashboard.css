@@ -69,3 +69,51 @@ td.centered, th.centered {
     margin: auto;
     display: block;
 }
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.sidebarButtons {
+    width: 100px;
+    margin-top: 20px;
+    margin-left: 10px;
+}
+#logoutButton {
+    width: 100px;
+    margin-top: 40px;
+    margin-left: 10px;
+}
+#greeting {
+    margin-right: 0px;
+}
+.subscription-item {
+    border-top: 2px solid black;
+    padding-top: 10px;
+}
+.subscription-description {
+    font-weight: bold;
+    font-size: 20px;
+}
+#deleteForm {
+    display: inline-block;
+    margin-right: 10px;
+}
+#changeNameForm {
+    display: inline-block;
+    margin-left: 40px;
+}
+.data-changes {
+    display: none;
+}
+.hide {
+    display: none;
+}
+#change {
+    border-top: 1px dotted black;
+    padding-top: 5px;
+}
+#dataChangeText {
+    font-weight: bold;
+}
+

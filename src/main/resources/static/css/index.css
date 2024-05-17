@@ -37,3 +37,9 @@ p {
 .text-center {
     text-align: center;
 }
+#success {
+    color: green;
+}
+#error {
+    color: red;
+}
