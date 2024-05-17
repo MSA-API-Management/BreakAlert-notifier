@@ -4,6 +4,24 @@ function showTab(tabName) {
     document.getElementById("clientTab").style.display = tabName === "client" ? "block" : "none";
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-button').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            // Get current subscription
+            const subscriptionItem = button.closest('.subscription-item');
+            // Extract the corresponding data change class
+            const dataChanges = subscriptionItem.querySelector('.data-changes');
+            if (dataChanges) {
+                const isVisible = dataChanges.style.display === 'block';
+                dataChanges.style.display = isVisible ? 'none' : 'block';
+                button.textContent = isVisible ? 'Show Data Changes' : 'Hide Data Changes';
+            }
+        });
+    });
+});
+
 function storeToken(token) {
     console.log("stored token");
     localStorage.setItem('jwtToken', token);

@@ -64,3 +64,8 @@ td.centered, th.centered {
 #tokenLink {
     width: 50%;
 }
+.toggle-button {
+    width: 70%;
+    margin: auto;
+    display: block;
+}

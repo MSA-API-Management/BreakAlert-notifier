@@ -75,12 +75,14 @@ public class DashboardController {
             }
         }
 
-        Map<Long, Set<DataChange>> dataChangesMap = new HashMap<>();
+        Map<Long, List<DataChange>> dataChangesMap = new HashMap<>();
         for (Subscription subscription : subscriptions) {
             System.out.println("Subscription ID"+subscription.getId());
             Set<DataChange> dataChanges = dataChangeRepository.findBySubscriptionId(subscription.getId());
             if(dataChanges!=null) {
-                dataChangesMap.put(subscription.getId(), dataChanges);
+                List<DataChange> dataChangeList = new ArrayList<>(dataChanges);
+                dataChangeList.sort((dc1, dc2) -> dc2.getTimestamp().compareTo(dc1.getTimestamp()));
+                dataChangesMap.put(subscription.getId(), dataChangeList);
             }
         }
         System.out.println("DataChanges Map: " + dataChangesMap);

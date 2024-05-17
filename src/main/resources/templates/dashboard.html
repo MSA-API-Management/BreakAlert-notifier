@@ -23,7 +23,7 @@
             <h2>Welcome, <span style="margin-right: 0px;" th:text="${username}"></span>!</h2>
             <p>You can find all your subscriptions here.</p>
             <ul>
-                <li th:each="subscription : ${subscriptions}" style="border-top: 2px solid black; padding-top: 10px;">
+                <li th:each="subscription : ${subscriptions}" style="border-top: 2px solid black; padding-top: 10px;" class="subscription-item">
                     <span th:text="${subscription.subName}" style="font-weight: bold; font-size: 20px;"></span>
                     <span th:text="${subscription.address}" style="font-weight: bold; font-size: 20px;"></span>
                     <span th:text="${subscription.branch}" style="font-weight: bold; font-size: 20px;"></span>
@@ -40,8 +40,10 @@
                             <button type="submit">Change Name</button>
                         </form>
                     </div>
+                    <br>
+                    <button class="toggle-button">Show Data Changes</button>
                     <br><br>
-                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}">
+                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}" class="data-changes" style="display: none;">
                         <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}" style="border-top: 1px dotted black; padding-top: 5px;">
                         <span th:text="${dataChanges.title}" style="font-weight: bold"></span>
                             <span th:text="${dataChanges.timestamp}"></span><br>
