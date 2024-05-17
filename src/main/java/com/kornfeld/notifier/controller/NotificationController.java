@@ -85,14 +85,14 @@ public class NotificationController {
         Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
 
         if (desiredSub.isPresent()) {
-            System.out.println("Received a request successfully");
-            System.out.println("HTML File: " + htmlContent);
+            System.out.println("NOTIFICATION - Received a request successfully");
+            System.out.println("NOTIFICATION - HTML File: " + htmlContent);
 
             String prompt = htmlParser.extractChanges(htmlContent);
-            System.out.println("\n\nRequest: " + prompt);
+            System.out.println("\nNOTIFICATION - Request: " + prompt);
 
             String response = gpt3ApiService.generateResponse(prompt);
-            System.out.println("Response: \n" + response);
+            System.out.println("NOTIFICATION - Response: \n" + response);
 
 
             String emailSubject = "Change(s) in "+desiredSub.get().getSubName()+" detected";
@@ -109,18 +109,18 @@ public class NotificationController {
                 for (Subscription subscription : subscriptions) {
                     if (subscription.getAddress().equals(address) && subscription.getBranch().equals(branch)) {
                         if (user.getEmail()!=null) {
-                            System.out.println("User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
-                            System.out.println("Sending email... ");
+                            System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
+                            System.out.println("NOTIFICATION - Sending email... ");
                             emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
                         }
 
                         // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
-                        System.out.println("Storing all info...");
+                        System.out.println("NOTIFICATION - Storing all info...");
                         storeDataChange(dataChange, subscription);
-                        System.out.println("Stored data change successfully");
+                        System.out.println("NOTIFICATION - Stored data change successfully");
 
                         if(user.getToken()!=null) {
-                            System.out.println("User is registered as a Client in GitLab");
+                            System.out.println("NOTIFICATION - User is registered as a Client in GitLab");
                             // POST request for Teams and GitLab
                             String apiUrl = user.getToken();
                             sendPostRequest(apiUrl, response, "API Changes");
@@ -146,20 +146,20 @@ public class NotificationController {
         HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
         ResponseEntity<String> postResponse;
         try {
-            System.out.println("webUrl: " + apiUrl);
+            System.out.println("NOTIFICATION - WebUrl: " + apiUrl);
             postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
             if (postResponse != null) {
                 if (postResponse.getStatusCode().is2xxSuccessful()) {
-                    System.out.println("POST request successful. Response: " + postResponse.getBody());
+                    System.out.println("NOTIFICATION - POST request successful. Response: " + postResponse.getBody());
                     successfulRequest = true;
                 } else {
-                    System.out.println("POST request failed. Response: " + postResponse.getBody());
+                    System.out.println("NOTIFICATION - POST request failed. Response: " + postResponse.getBody());
                 }
             } else {
-                System.out.println("POST request failed. No response received.");
+                System.out.println("NOTIFICATION - POST request failed. No response received.");
             }
         } catch (RestClientException e) {
-            System.out.println("Error while making POST request: " + e.getMessage());
+            System.out.println("NOTIFICATION - Error while making POST request: " + e.getMessage());
         }
         return successfulRequest;
     }

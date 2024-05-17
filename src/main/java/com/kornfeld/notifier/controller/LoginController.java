@@ -45,7 +45,7 @@ public class LoginController {
     public String processRegister(AppUser user, Model model) {
         List<AppUser> list = userRepository.findByNameOrEmail(user.getName(), user.getEmail());
         for (AppUser user1: list) {
-            System.out.println("REGISTER - Users already in Database " + user1.getName()+", " + user1.getEmail()+", " + user1.getPassword());
+            System.out.println("REGISTER - Users already in Database " + user1.getName()+", " + user1.getEmail());
         }
         if(list.isEmpty()){
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
