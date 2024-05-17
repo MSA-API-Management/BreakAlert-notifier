@@ -58,7 +58,7 @@ public class DashboardController {
     @GetMapping("/dashboard")
     @Transactional
     public String showDashboard(Model model, @RequestParam("token") String jwtToken) {
-        System.out.println("Redirecter");
+        System.out.println("DASHBOARD - Initializing Dashboard");
 
         AppUser appUser = getCurrentUser(jwtToken);
         entityManager.persist(appUser);
@@ -77,17 +77,16 @@ public class DashboardController {
 
         Map<Long, List<DataChange>> dataChangesMap = new HashMap<>();
         for (Subscription subscription : subscriptions) {
-            System.out.println("Subscription ID"+subscription.getId());
+            System.out.println("DASHBOARD - Load Subscription ID"+subscription.getId());
             Set<DataChange> dataChanges = dataChangeRepository.findBySubscriptionId(subscription.getId());
+
             if(dataChanges!=null) {
                 List<DataChange> dataChangeList = new ArrayList<>(dataChanges);
                 dataChangeList.sort((dc1, dc2) -> dc2.getTimestamp().compareTo(dc1.getTimestamp()));
                 dataChangesMap.put(subscription.getId(), dataChangeList);
             }
         }
-        System.out.println("DataChanges Map: " + dataChangesMap);
         model.addAttribute("subscriptions", subscriptions);
-
         model.addAttribute("dataChangesMap", dataChangesMap);
 
         return "dashboard";
@@ -100,7 +99,7 @@ public class DashboardController {
         AppUser user = getCurrentUser(jwtToken);
         entityManager.persist(user);
 
-        System.out.println("User ID: "+user.getId()+" wants to subscribe to subID="+subscriptionId);
+        System.out.println("DASHBOARD - User " + user.getName() + "(ID=" + user.getId()+") wants to subscribe to subID="+subscriptionId);
 
         if (subscription != null) {
             user.getSubscriptions().add(subscription);
@@ -136,19 +135,19 @@ public class DashboardController {
         HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
         ResponseEntity<String> postResponse;
         try {
-            System.out.println("webUrl: " + tokenLink);
+            System.out.println("DASHBOARD - Trying to Save GitLab Client URL: " + tokenLink);
             postResponse = restTemplate.postForEntity(tokenLink, entity, String.class);
             if (postResponse.getStatusCode().is2xxSuccessful()) {
-                System.out.println("Test POST request successful. Response: " + postResponse.getBody());
+                System.out.println("DASHBOARD - Test POST request successful. Response: " + postResponse.getBody());
                 gitLabAvailable = true;
             } else {
-                System.out.println("Test POST request failed. Response: " + postResponse.getBody());
-                System.out.println("Try again later or enter a different URL.");
+                System.out.println("DASHBOARD - Test POST request failed. Response: " + postResponse.getBody());
+                System.out.println("DASHBOARD - Try again later or enter a different URL.");
                 model.addAttribute("urlFalse", true);
             }
         } catch (RestClientException e) {
-            System.out.println("Error while making Test POST request: " + e.getMessage());
-            System.out.println("Try again later or enter a different URL.");
+            System.out.println("DASHBOARD - Error while making Test POST request: " + e.getMessage());
+            System.out.println("DASHBOARD - Try again later or enter a different URL.");
             model.addAttribute("urlFalse", true);
         }
 
@@ -185,9 +184,9 @@ public class DashboardController {
 
         if(subscription.isPresent()){
             user.getSubscriptions().remove(subscription.get());
-            System.out.println("Successfully deleted the subscription");
+            System.out.println("DASHBOARD - Successfully deleted the subscription ID " + subscriptionId);
         }else{
-            System.out.println("Error when deleting the subscription");
+            System.out.println("DASHBOARD - Error when deleting the subscription ID " + subscriptionId);
         }
         redirectAttributes.addAttribute("token", jwtToken);
         return "redirect:/dashboard";
@@ -204,9 +203,9 @@ public class DashboardController {
                 Subscription subscription = subscriptionOptional.get();
                 subscription.setSubName(newName);
                 subscriptionRepository.save(subscription);
-                System.out.println("Successfully changed the name of the subscription");
+                System.out.println("DASHBOARD - Successfully changed the name of the subscription ID " + subscriptionId);
             } else {
-                System.out.println("Error when changing the name of the subscription");
+                System.out.println("DASHBOARD - Error when changing the name of the subscription ID " + subscriptionId);
             }
         }
         redirectAttributes.addAttribute("token", jwtToken);
@@ -215,6 +214,7 @@ public class DashboardController {
 
     @PostMapping("/logout")
     public String logout( Model model) {
+        System.out.println("DASHBOARD - Logout");
         return "index";
     }
 
@@ -225,10 +225,10 @@ public class DashboardController {
             String username = jwtService.getUsername(jwtToken);
             user = userRepository.findByName(username);
             if(user!=null) {
-                System.out.println("Valid Token");
+                System.out.println("DASHBOARD - Valid Token from user " + user.getName() + "(ID=" + user.getId() + ")");
                 setAuthentication(user);
             } else {
-                System.out.println("Token is not valid");
+                System.out.println("DASHBOARD - Token is not valid");
             }
         }
         return user;

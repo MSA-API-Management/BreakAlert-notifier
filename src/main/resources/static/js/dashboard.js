@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function storeToken(token) {
-    console.log("stored token");
+    console.log("Store Token");
     localStorage.setItem('jwtToken', token);
 
     var jwtTokenInputs = document.getElementsByName("jwtToken");
@@ -38,10 +38,9 @@ function clearToken() {
 }
 
 window.onload = function() {
-    console.log("on start up");
+    console.log("Initializing...");
     const urlParams = new URLSearchParams(window.location.search);
     token = urlParams.get('token');
-    console.log("Token: " + token);
     if (token) {
         storeToken(token);
         // Remove the token parameter from the URL
