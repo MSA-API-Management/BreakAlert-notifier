@@ -5,114 +5,118 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
-    <div id="sidebar">
-        <button onclick="showTab('dashboard')" class="sidebarButtons">Dashboard</button>
-        <button onclick="showTab('subscribe')" class="sidebarButtons">Subscribe</button>
-        <button onclick="showTab('client')" class="sidebarButtons">GitLab</button>
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" id="logoutButton" onclick="clearToken()">Logout</button>
-        </form>
-    </div>
+<div id="sidebar">
+    <button onclick="showTab('dashboard')" class="sidebarButtons">Dashboard</button>
+    <button onclick="showTab('subscribe')" class="sidebarButtons">Subscribe</button>
+    <button onclick="showTab('client')" class="sidebarButtons">GitLab</button>
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" id="logoutButton" onclick="clearToken()">Logout</button>
+    </form>
+</div>
 
-    <div id="dashboardTab">
-        <div class="dashboard-container">
-            <h2>Welcome, <span id="greeting" th:text="${username}"></span>!</h2>
-            <p>You can find all your subscriptions here.</p>
-            <ul>
-                <li th:each="subscription : ${subscriptions}" class="subscription-item">
-                    <span th:text="${subscription.subName}" class="subscription-description"></span>
-                    <span th:text="${subscription.address}" class="subscription-description"></span>
-                    <span th:text="${subscription.branch}" class="subscription-description"></span>
-                    <br><br>
-                    <div>
-                        <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" id="deleteForm">
-                            <input type="hidden" name="jwtToken">
-                            <button type="submit">Unsubscribe</button>
-                        </form>
-                        <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post" id="changeNameForm">
-                            <label for="newName">Change name of subscription:</label>
-                            <input type="hidden" name="jwtToken">
-                            <input type="text" id="newName" name="newName" required>
-                            <button type="submit">Change Name</button>
-                        </form>
-                    </div>
-                    <br>
-                    <button class="toggle-button">Show Data Changes</button>
-                    <br><br>
-                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}" class="data-changes">
-                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
+<div id="dashboardTab">
+    <div class="dashboard-container">
+        <h2>Welcome, <span id="greeting" th:text="${username}"></span>!</h2>
+        <p>You can find all your subscriptions here.</p>
+        <ul>
+            <li th:each="subscription : ${subscriptions}" class="subscription-item">
+                <span th:text="${subscription.subName}" class="subscription-description"></span>
+                <span th:text="${subscription.address}" class="subscription-description"></span>
+                <span th:text="${subscription.branch}" class="subscription-description"></span>
+                <br><br>
+                <div>
+                    <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" id="deleteForm">
+                        <input type="hidden" name="jwtToken">
+                        <button type="submit">Unsubscribe</button>
+                    </form>
+                    <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post"
+                          id="changeNameForm">
+                        <label for="newName">Change name of subscription:</label>
+                        <input type="hidden" name="jwtToken">
+                        <input type="text" id="newName" name="newName" required>
+                        <button type="submit">Change Name</button>
+                    </form>
+                </div>
+                <br>
+                <button class="toggle-button">Show Data Changes</button>
+                <br><br>
+                <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}"
+                    class="data-changes">
+                    <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
                         <span th:text="${dataChanges.title}" id="dataChangeText"></span>
-                            <span th:text="${dataChanges.timestamp}"></span><br>
-                            <div th:text="${dataChanges.content}" id="content"></div><br>
-                        </li>
-                    </ul>
-                    <br>
-                </li>
-            </ul>
-        </div>
+                        <span th:text="${dataChanges.timestamp}"></span><br>
+                        <div th:text="${dataChanges.content}" id="content"></div>
+                        <br>
+                    </li>
+                </ul>
+                <br>
+            </li>
+        </ul>
     </div>
-    <div id="subscribeTab" class="hide">
-        <div class="dashboard-container">
-            <h2>Subscriptions</h2>
-            <p>You can find all repos you can subscribe to here.</p>
-            <div th:if="${subscriptionSuccess}">
-                Successfully subscribed!
-            </div>
-            <div th:if="${subscriptionError}">
-                Subscribing was not successful!
-            </div>
-            <table>
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Address</th>
-                    <th>Branch</th>
-                    <th>Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="subscription,iStat : ${toSubscribe}">
-                        <form th:action="@{/subscribe}" method="post">
-                            <td th:text="${subscription.subName}">Subscription Name</td>
-                            <td th:text="${subscription.address}">Subscription Address</td>
-                            <td th:text="${subscription.branch}">Subscription Branch</td>
-                            <td class="centered">
-                                <input type="hidden" name="subscriptionId" th:value="${subscription.id}">
-                                <input type="hidden" name="jwtToken">
-                                <button type="submit">Subscribe</button>
-                            </td>
-                        </form>
-                    </tr>
-                </tbody>
-            </table>
+</div>
+<div id="subscribeTab" class="hide">
+    <div class="dashboard-container">
+        <h2>Subscriptions</h2>
+        <p>You can find all repos you can subscribe to here.</p>
+        <div th:if="${subscriptionSuccess}">
+            Successfully subscribed!
         </div>
+        <div th:if="${subscriptionError}">
+            Subscribing was not successful!
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Branch</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="subscription,iStat : ${toSubscribe}">
+                <form th:action="@{/subscribe}" method="post">
+                    <td th:text="${subscription.subName}">Subscription Name</td>
+                    <td th:text="${subscription.address}">Subscription Address</td>
+                    <td th:text="${subscription.branch}">Subscription Branch</td>
+                    <td class="centered">
+                        <input type="hidden" name="subscriptionId" th:value="${subscription.id}">
+                        <input type="hidden" name="jwtToken">
+                        <button type="submit">Subscribe</button>
+                    </td>
+                </form>
+            </tr>
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <div id="clientTab" class="hide">
-        <div class="dashboard-container">
-            <h2>Connect your account with a GitLab Client</h2>
-            <form th:action="@{/saveToken}" method="post">
-                <label for="tokenLink">Enter your GitLab link:</label>
-                <input type="text" id="tokenLink" name="tokenLink">
-                <input type="hidden" name="jwtToken">
-                <button type="submit">Save</button>
-            </form>
-            <br>
-            <div th:if="${tokenExists}">
-                <strong>You have already connected your account with a GitLab Client.</strong> You can still change the connection if you want to.
-            </div>
-            <div th:if="${urlFalse}">
-                The entered URL seems to be not correct or currently not available.
-                Check your URL or enter later.
-            </div>
+<div id="clientTab" class="hide">
+    <div class="dashboard-container">
+        <h2>Connect your account with a GitLab Client</h2>
+        <form th:action="@{/saveToken}" method="post">
+            <label for="tokenLink">Enter your GitLab link:</label>
+            <input type="text" id="tokenLink" name="tokenLink">
+            <input type="hidden" name="jwtToken">
+            <button type="submit">Save</button>
+        </form>
+        <br>
+        <div th:if="${tokenExists}">
+            <strong>You have already connected your account with a GitLab Client.</strong> You can still change the
+            connection if you want to.
+        </div>
+        <div th:if="${urlFalse}">
+            The entered URL seems to be not correct or currently not available.
+            Check your URL or enter later.
         </div>
     </div>
+</div>
 
-    <script type="text/javascript" th:src="@{/js/dashboard.js}"></script>
+<script type="text/javascript" th:src="@{/js/dashboard.js}"></script>
 
 </body>
 </html>

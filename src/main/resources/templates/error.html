@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Something went wrong</title>
-    <link rel="stylesheet" th:href="@{/css/error.css}" />
+    <link rel="stylesheet" th:href="@{/css/error.css}"/>
 </head>
 <body>
-    <h1>Something went wrong...</h1>
-    <h4 th:if="${credentials}">You entered bad credentials</h4>
-    <h3><a href="/" class="btn btn-primary">Go to start</a></h3>
-
+<h1>Something went wrong...</h1>
+<h4 th:if="${credentials}">You entered bad credentials</h4>
+<h3><a href="/" class="btn btn-primary">Go to start</a></h3>
 </body>
 </html>

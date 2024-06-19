@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>GitLab Client</title>
-    <link rel="stylesheet" th:href="@{/css/confirmClient.css}" />
+    <link rel="stylesheet" th:href="@{/css/confirmClient.css}"/>
 </head>
 <body>
 <div th:if="${urlCorrect}">
@@ -21,8 +21,8 @@
         <h1>Something went wrong when adding your GitLab Client</h1>
         <h4>Your entered URL might not be correct. Try again later or enter a different URL.</h4>
         <div>
-        <input type="hidden" name="token">
-        <input type="submit" value="Go Back To Dashboard">
+            <input type="hidden" name="token">
+            <input type="submit" value="Go Back To Dashboard">
         </div>
     </form>
 </div>
