@@ -30,9 +30,12 @@ To successfully launch the project the following environment variables need to b
 
   Set the secret JWT-Key (HS256)
 
+- mailName
+
+  Enter your gmail address
+
 - mailPassword
 
   Enter the generated API password for your Gmail-Account
-
 
   
