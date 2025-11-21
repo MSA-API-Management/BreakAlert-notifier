@@ -96,7 +96,7 @@ public class NotificationController {
 
 
             String emailSubject = "Change(s) in "+desiredSub.get().getSubName()+" detected";
-            String emailBody = "Overview:\n\n" + response + "\n\n\nDetailed Changes:\n" + prompt + "\n\nSubscription Details:\n(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
+            String emailBody = "Summary:\n\n" + response + "\n\n\nDetailed Changes:\n" + prompt + "\n\nSubscription Details:\n(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
 
             DataChange dataChange = new DataChange();
             dataChange.setTitle(emailSubject);

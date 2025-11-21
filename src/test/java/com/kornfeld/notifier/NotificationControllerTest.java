@@ -90,7 +90,7 @@ public class NotificationControllerTest {
         verify(subscriptionRepository, times(1)).findByAddressAndBranch("testing.com", "main");
         verify(htmlParser, times(1)).extractChanges("HTML Content");
         verify(gpt3ApiService, times(1)).generateResponse(anyString());
-        verify(emailSender, times(1)).sendEmail("user@test.com", "Change(s) in testname detected", "Overview:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
+        verify(emailSender, times(1)).sendEmail("user@test.com", "Change(s) in testname detected", "Summary:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
         verify(dataChangeRepository, times(1)).save(dataChangeCaptor.capture());
 
         DataChange savedDataChange = dataChangeCaptor.getValue();
@@ -150,7 +150,7 @@ public class NotificationControllerTest {
 
         dataChange = new DataChange();
         dataChange.setTitle("Change(s) in testname detected");
-        dataChange.setContent("Overview:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
+        dataChange.setContent("Summary:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
         dataChangeCaptor = ArgumentCaptor.forClass(DataChange.class);
     }
 
