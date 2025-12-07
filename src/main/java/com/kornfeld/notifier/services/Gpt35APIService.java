@@ -20,7 +20,7 @@ public class Gpt35APIService {
 
     @Value("${GPT_API_KEY}")
     private String API_KEY;
-    private static final String MODEL = "gpt-3.5-turbo";
+    private static final String MODEL = "gpt-5-mini-2025-08-07";
     private RestTemplate restTemplate;
 
     public void setRestTemplate(RestTemplate restTemplate) {
@@ -41,14 +41,14 @@ public class Gpt35APIService {
             "Describe the most important/meaningful changes as briefly as you can. " +
             "The result should be a general textual overview of the changes. Do not go into detail or make a enumeration. " +
             "The receiver of your answer is a developer, so there is no need for explanations on 'easy' topics. " +
-            "Make line breaks after sentences for a better structure. But do not make double line breaks. " +
+            "Make line breaks after sentences for a better structure. But do not make double line breaks. ";
             // ---------------- Optional ----------------
-            "The result could look something like this: " +
-            "The API now includes a new endpoint for testing with a null parameter. \n" +
-            "The endpoint for testing has been updated to include a new parameter called 'testing'. \n" +
-            "An endpoint labeled '2nd' has been removed. \n" +
-            "An endpoint labeled 'second to last' is now deprecated. \n" +
-            "The endpoint previously labeled 'last' has undergone some changes.";
+//            "The result could look something like this: " +
+//            "The API now includes a new endpoint for testing with a null parameter. \n" +
+//            "The endpoint for testing has been updated to include a new parameter called 'testing'. \n" +
+//            "An endpoint labeled '2nd' has been removed. \n" +
+//            "An endpoint labeled 'second to last' is now deprecated. \n" +
+//            "The endpoint previously labeled 'last' has undergone some changes.";
 
     public String generateResponse(String prompt) {
         System.out.println("Generating Response soon...");
@@ -100,8 +100,8 @@ public class Gpt35APIService {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", MODEL);
         requestBody.put("messages", messages);
-        requestBody.put("temperature", 0.7);
-        requestBody.put("max_tokens", 1000);
+//        requestBody.put("temperature", 0.7);
+//        requestBody.put("max_tokens", 1000);
         return requestBody;
     }
 
