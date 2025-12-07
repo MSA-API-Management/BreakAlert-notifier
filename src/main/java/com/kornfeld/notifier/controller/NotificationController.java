@@ -111,7 +111,8 @@ public class NotificationController {
                         if (user.getEmail()!=null) {
                             System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
                             System.out.println("NOTIFICATION - Sending email... ");
-                            emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
+                            System.out.println("NOTIFICATION - HINT: EMAIL SENDING CURRENTLY DISABLED");
+//                            emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
                         }
 
                         // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
