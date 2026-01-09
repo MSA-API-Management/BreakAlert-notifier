@@ -11,6 +11,8 @@ import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -44,6 +46,9 @@ public class NotificationController {
     @Autowired
     private EmailSender emailSender;
 
+    private final Parser markdownParser;
+    private final HtmlRenderer htmlRenderer;
+
     private DataChangeRepository dataChangeRepository;
 
     private SubscriptionRepository subscriptionRepository;
@@ -62,6 +67,9 @@ public class NotificationController {
         this.dataChangeRepository = dataChangeRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
+
+        this.markdownParser = Parser.builder().build();
+        this.htmlRenderer = HtmlRenderer.builder().softbreak("<br>").build();
     }
 
     public void setRestTemplate(RestTemplateBuilder restTemplate) {
@@ -77,7 +85,7 @@ public class NotificationController {
     @PostMapping("/generate-response")
     @Transactional
     public ResponseEntity<String> generateResponse(
-            @RequestBody String htmlContent,
+            @RequestBody String markdownContent,
             @RequestParam(value = "address") String address,
             @RequestParam(value = "branch") String branch,
             Model model
@@ -86,21 +94,25 @@ public class NotificationController {
 
         if (desiredSub.isPresent()) {
             System.out.println("NOTIFICATION - Received a request successfully");
-            System.out.println("NOTIFICATION - HTML File: " + htmlContent);
+            System.out.println("NOTIFICATION - Markdown File: " + markdownContent);
 
-            String prompt = htmlParser.extractChanges(htmlContent);
-            System.out.println("\nNOTIFICATION - Request: " + prompt);
+            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
+            System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
-            String response = gpt3ApiService.generateResponse(prompt);
-            System.out.println("NOTIFICATION - Response: \n" + response);
-
-
-            String emailSubject = "Change(s) in "+desiredSub.get().getSubName()+" detected";
-            String emailBody = "Summary:\n\n" + response + "\n\n\nDetailed Changes:\n" + prompt + "\n\nSubscription Details:\n(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
+            String cleanDetailedChanges = normalizeMarkdown(markdownContent);
+            String combinedMarkdown =
+                    "### Summary\n" + gptResponse + "\n\n" +
+                            "---\n" +
+                            "### Detailed Changes\n" + cleanDetailedChanges + "\n\n" +
+                            "---\n" +
+                            "**Subscription Details:**\n" +
+                            "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
+            String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
+            String emailSubject = "Change(s) in " + desiredSub.get().getSubName() + " detected";
 
             DataChange dataChange = new DataChange();
             dataChange.setTitle(emailSubject);
-            dataChange.setContent(emailBody);
+            dataChange.setContent(finalHtmlContent);
 
             List<AppUser> users = userRepository.findAll();
 
@@ -111,8 +123,8 @@ public class NotificationController {
                         if (user.getEmail()!=null) {
                             System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
                             System.out.println("NOTIFICATION - Sending email... ");
-                            System.out.println("NOTIFICATION - HINT: EMAIL SENDING CURRENTLY DISABLED");
-//                            emailSender.sendEmail(user.getEmail(), emailSubject, emailBody);
+                            System.out.println("NOTIFICATION - WARNING: EMAIL SENDING CURRENTLY DISABLED");
+//                            emailSender.sendEmail(user.getEmail(), emailSubject, finalHtmlContent); // TODO not adapted for email responses
                         }
 
                         // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
@@ -124,7 +136,8 @@ public class NotificationController {
                             System.out.println("NOTIFICATION - User is registered as a Client in GitLab");
                             // POST request for Teams and GitLab
                             String apiUrl = user.getToken();
-                            sendPostRequest(apiUrl, response, "API Changes");
+                            System.out.println("NOTIFICATION - WARNING: TICKET CREATION CURRENTLY DISABLED");
+//                            sendPostRequest(apiUrl, gptResponse, "API Changes"); // TODO new response not adapted for ticket description
                         }
                     }
                 }
@@ -132,6 +145,19 @@ public class NotificationController {
 
         }
         return ResponseEntity.ok("API Change was successfully processed.");
+    }
+
+    private String convertMarkdownToHtml(String markdown) {
+        if (markdown == null) return "";
+        return htmlRenderer.render(markdownParser.parse(markdown));
+    }
+
+    private String normalizeMarkdown(String raw) {
+        if (raw == null) return "";
+
+        String normalized = raw.replaceAll("---", "\n\n---\n\n");
+        normalized = normalized.replaceAll("(?<!\n)(#{1,6}\\s)", "\n$1");
+        return normalized;
     }
 
     private boolean sendPostRequest(String apiUrl, String response, String title) {
@@ -170,6 +196,5 @@ public class NotificationController {
         dataChange.setTimestamp(LocalDateTime.now());
         dataChangeRepository.save(dataChange);
     }
-
 }
 

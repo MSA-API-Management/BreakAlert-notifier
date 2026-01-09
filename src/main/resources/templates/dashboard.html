@@ -49,7 +49,7 @@
                     <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
                         <span th:text="${dataChanges.title}" id="dataChangeText"></span>
                         <span th:text="${dataChanges.timestamp}"></span><br>
-                        <div th:text="${dataChanges.content}" id="content"></div>
+                        <div th:utext="${dataChanges.content}" id="content"></div>
                         <br>
                     </li>
                 </ul>

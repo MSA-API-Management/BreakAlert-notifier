@@ -29,7 +29,6 @@ h2 span, li span:nth-child(-n + 2) {
 }
 #content{
     margin-top: 10px;
-    white-space: pre-line;
 }
 button {
     padding: 5px 10px;
