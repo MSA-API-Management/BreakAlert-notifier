@@ -96,10 +96,15 @@ public class NotificationController {
             System.out.println("NOTIFICATION - Received a request successfully");
             System.out.println("NOTIFICATION - Markdown File: " + markdownContent);
 
-            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
+//            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
+            String gptResponse = "Currently no summary";
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
+
+            System.out.println("DEBUG - " + markdownContent);
+            System.out.println("DEBUG2 - " + cleanDetailedChanges);
+
             String combinedMarkdown =
                     "### Summary\n" + gptResponse + "\n\n" +
                             "---\n" +
@@ -155,9 +160,18 @@ public class NotificationController {
     private String normalizeMarkdown(String raw) {
         if (raw == null) return "";
 
-        String normalized = raw.replaceAll("---", "\n\n---\n\n");
-        normalized = normalized.replaceAll("(?<!\n)(#{1,6}\\s)", "\n$1");
-        return normalized;
+        int firstSeparatorIndex = raw.indexOf("---");
+        String content;
+        if(firstSeparatorIndex != -1) content = raw.substring(firstSeparatorIndex+3);
+        else content = raw;
+
+        content = content.replace(">", "");
+
+        String normalized = content.replace("---", "\n\n---\n\n");
+        normalized = normalized.replaceAll("([^\\n#])(#{1,6}\\s)", "$1\n\n$2");
+//        normalized = normalized.replaceAll("(?<!\n|#)(#{1,6}\\s)", "\n\n$1");
+
+        return normalized.trim();
     }
 
     private boolean sendPostRequest(String apiUrl, String response, String title) {
