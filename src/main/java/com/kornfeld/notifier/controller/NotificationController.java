@@ -107,8 +107,7 @@ public class NotificationController {
 
             String combinedMarkdown =
                     "### Summary\n" + gptResponse + "\n\n" +
-                            "---\n" +
-                            "### Detailed Changes\n" + cleanDetailedChanges + "\n\n" +
+                            "---\n" + cleanDetailedChanges + "\n\n" +
                             "---\n" +
                             "**Subscription Details:**\n" +
                             "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
@@ -160,18 +159,21 @@ public class NotificationController {
     private String normalizeMarkdown(String raw) {
         if (raw == null) return "";
 
+        // Removes Project Name and first ---
         int firstSeparatorIndex = raw.indexOf("---");
-        String content;
-        if(firstSeparatorIndex != -1) content = raw.substring(firstSeparatorIndex+3);
-        else content = raw;
+        String content = (firstSeparatorIndex != -1)
+                ? raw.substring(firstSeparatorIndex + 3)
+                : raw;
 
         content = content.replace(">", "");
+        content = content.replace("---", "\n\n---\n\n");
+        content = content.replaceAll("([^\\s])(:)(?=[^/])", "$1$2 "); // Adds space after colon if missing
+        content = content.replaceAll("(?<!\\n|\\*)(\\*\\s)", "\n\n$1"); // Ensures Bullet Points have a blank line before them (for rendering)
+        content = content.replaceAll("([^\\n#])(#{1,6}\\s)", "$1\n\n$2"); // Ensures Headers are on their own lines
+        content = content.replaceAll("(?m)^#####\\s", "* "); // lines starting with exactly 5 hashes and turns them into "* "
+        content = content.replaceAll("(?m)^#(#+\\s)", "$1"); // Replaces the whole match with just the captured part ($1), effectively dropping the first '#'
 
-        String normalized = content.replace("---", "\n\n---\n\n");
-        normalized = normalized.replaceAll("([^\\n#])(#{1,6}\\s)", "$1\n\n$2");
-//        normalized = normalized.replaceAll("(?<!\n|#)(#{1,6}\\s)", "\n\n$1");
-
-        return normalized.trim();
+        return content.trim();
     }
 
     private boolean sendPostRequest(String apiUrl, String response, String title) {
