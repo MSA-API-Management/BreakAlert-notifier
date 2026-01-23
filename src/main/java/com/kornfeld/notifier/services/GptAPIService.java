@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class Gpt35APIService {
+public class GptAPIService {
     private String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
     @Value("${GPT_API_KEY}")
