@@ -96,14 +96,11 @@ public class NotificationController {
             System.out.println("NOTIFICATION - Received a request successfully");
             System.out.println("NOTIFICATION - Markdown File: " + markdownContent);
 
-//            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
-            String gptResponse = "Currently no summary";
+            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
+//            String gptResponse = "Currently no summary";
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
-
-            System.out.println("DEBUG - " + markdownContent);
-            System.out.println("DEBUG2 - " + cleanDetailedChanges);
 
             String combinedMarkdown =
                     "### Summary\n" + gptResponse + "\n\n" +
@@ -112,6 +109,7 @@ public class NotificationController {
                             "**Subscription Details:**\n" +
                             "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
             String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
+
             String emailSubject = "Change(s) in " + desiredSub.get().getSubName() + " detected";
 
             DataChange dataChange = new DataChange();
@@ -128,7 +126,7 @@ public class NotificationController {
                             System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
                             System.out.println("NOTIFICATION - Sending email... ");
                             System.out.println("NOTIFICATION - WARNING: EMAIL SENDING CURRENTLY DISABLED");
-//                            emailSender.sendEmail(user.getEmail(), emailSubject, finalHtmlContent); // TODO not adapted for email responses
+                            emailSender.sendEmail(user.getEmail(), emailSubject, finalHtmlContent); // TODO not adapted for email responses
                         }
 
                         // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
