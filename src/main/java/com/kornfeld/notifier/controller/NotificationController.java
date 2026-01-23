@@ -165,14 +165,6 @@ public class NotificationController {
                 ? raw.substring(firstSeparatorIndex + 3)
                 : raw;
 
-        content = content.replace(">", "");
-        content = content.replace("---", "\n\n---\n\n");
-        content = content.replaceAll("([^\\s])(:)(?=[^/])", "$1$2 "); // Adds space after colon if missing
-        content = content.replaceAll("(?<!\\n|\\*)(\\*\\s)", "\n\n$1"); // Ensures Bullet Points have a blank line before them (for rendering)
-        content = content.replaceAll("([^\\n#])(#{1,6}\\s)", "$1\n\n$2"); // Ensures Headers are on their own lines
-        content = content.replaceAll("(?m)^#####\\s", "* "); // lines starting with exactly 5 hashes and turns them into "* "
-        content = content.replaceAll("(?m)^#(#+\\s)", "$1"); // Replaces the whole match with just the captured part ($1), effectively dropping the first '#'
-
         return content.trim();
     }
 
