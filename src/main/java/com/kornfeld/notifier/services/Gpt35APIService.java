@@ -4,15 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class Gpt35APIService {
@@ -35,20 +34,11 @@ public class Gpt35APIService {
         this.OPENAI_API_URL = OPENAI_API_URL;
     }
 
-    private static final String DESCRIPTION = "You are an assistant which analyzes the changes from APIs over time. " +
-            "Usually you should receive a rather large list of API Changes. " +
-            "Different changes in sections like 'What's New' are divided by ' | '. " +
+    private static final String DESCRIPTION = "You are an assistant which analyzes the changes from APIs over time written in markdown. " +
             "Describe the most important/meaningful changes as briefly as you can. " +
-            "The result should be a general textual overview of the changes. Do not go into detail or make a enumeration. " +
-            "The receiver of your answer is a developer, so there is no need for explanations on 'easy' topics. " +
-            "Make line breaks after sentences for a better structure. But do not make double line breaks. ";
-            // ---------------- Optional ----------------
-//            "The result could look something like this: " +
-//            "The API now includes a new endpoint for testing with a null parameter. \n" +
-//            "The endpoint for testing has been updated to include a new parameter called 'testing'. \n" +
-//            "An endpoint labeled '2nd' has been removed. \n" +
-//            "An endpoint labeled 'second to last' is now deprecated. \n" +
-//            "The endpoint previously labeled 'last' has undergone some changes.";
+            "The result should be a general textual overview of the changes. Do not go into detail or make an enumeration. " +
+            "The receiver of your answer is a developer, so there is no need for explanations on 'easy' topics but still keep it simple. " +
+            "Make line breaks after sentences for a better structure. But do not make double line breaks.";
 
     public String generateResponse(String prompt) {
         System.out.println("Generating Response soon...");
@@ -105,7 +95,7 @@ public class Gpt35APIService {
         return requestBody;
     }
 
-    private static String convertRequestBodyToJSON(Map<String, Object> requestBody){
+    private static String convertRequestBodyToJSON(Map<String, Object> requestBody) {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonBody;
         try {
