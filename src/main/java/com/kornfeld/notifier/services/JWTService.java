@@ -17,13 +17,13 @@ public class JWTService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
     @Value("${security.jwt.expiration-time}")
-    private long expiration;
+    private int expiration;
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
     }
 
-    public void setExpiration(long expiration) {
+    public void setExpiration(int expiration) {
         this.expiration = expiration;
     }
 
@@ -56,6 +56,10 @@ public class JWTService {
 
     private String extractUsername(String token) {
         return Jwts.parserBuilder().setSigningKey(getSecretKey()).build().parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public int getExpiration() {
+        return expiration;
     }
 
 }

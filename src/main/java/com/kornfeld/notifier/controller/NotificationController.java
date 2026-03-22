@@ -16,10 +16,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -90,14 +87,15 @@ public class NotificationController {
             @RequestParam(value = "branch") String branch,
             Model model
     ) throws IOException {
+        System.out.println("TESTING");
         Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
 
         if (desiredSub.isPresent()) {
             System.out.println("NOTIFICATION - Received a request successfully");
             System.out.println("NOTIFICATION - Markdown File: " + markdownContent);
 
-            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
-//            String gptResponse = "Currently no summary";
+//            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
+            String gptResponse = "Currently no summary";
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
@@ -144,9 +142,11 @@ public class NotificationController {
                     }
                 }
             }
-
+            return ResponseEntity.ok("API Change was successfully processed.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Address not found in subscription list!");
         }
-        return ResponseEntity.ok("API Change was successfully processed.");
+
     }
 
     private String convertMarkdownToHtml(String markdown) {

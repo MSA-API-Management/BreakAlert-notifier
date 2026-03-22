@@ -5,10 +5,11 @@ import com.kornfeld.notifier.entities.AppUser;
 import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.AuthenticationService;
 import com.kornfeld.notifier.services.JWTService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,46 +101,55 @@ public class LoginControllerTest {
     void testProcessLogin_Authenticated() {
         setUpUser();
         user.setId(1L);
-        RedirectAttributes redirectAttributes = mock(RedirectAttributes.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        String mockToken = "mock.jwt.token";
 
         when(authenticationService.authenticate(USERNAME, PASSWORD)).thenReturn(user);
+        when(jwtService.generateToken(user)).thenReturn(mockToken);
 
-        String returnVal = loginController.processLogin(USERNAME, PASSWORD, redirectAttributes, null, model);
+        String returnVal = loginController.processLogin(USERNAME, PASSWORD, response, model);
 
         assertEquals("redirect:/dashboard", returnVal);
 
         verify(jwtService).generateToken(user);
-        verify(redirectAttributes).addAttribute(eq("token"), any());
+
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(response).addCookie(cookieCaptor.capture());
+
+        Cookie capturedCookie = cookieCaptor.getValue();
+        assertEquals("jwt", capturedCookie.getName());
+        assertEquals(mockToken, capturedCookie.getValue());
+        assertTrue(capturedCookie.isHttpOnly());
+        assertEquals("/", capturedCookie.getPath());
     }
 
     @Test
     void testProcessLogin_NotAuthenticated() {
-        RedirectAttributes redirectAttributes = mock(RedirectAttributes.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
 
         when(authenticationService.authenticate(USERNAME, PASSWORD)).thenReturn(null);
 
-        String returnVal = loginController.processLogin(USERNAME, PASSWORD, redirectAttributes, null, model);
+        String returnVal = loginController.processLogin(USERNAME, PASSWORD, response, model);
 
         assertEquals("index", returnVal);
-
         verify(jwtService, never()).generateToken(any());
-        verify(redirectAttributes, never()).addAttribute(eq("token"), anyString());
+        verify(response, never()).addCookie(any());
     }
 
     @Test
     void testProcessLogin_BadCredentials() {
         setUpUser();
         user.setId(1L);
-        RedirectAttributes redirectAttributes = mock(RedirectAttributes.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
         Exception exception = new RuntimeException("Bad Credentials");
 
         when(authenticationService.authenticate(USERNAME, "PASSWORD")).thenThrow(exception);
 
-        String returnVal = loginController.processLogin(USERNAME, "PASSWORD", redirectAttributes, null, model);
+        String returnVal = loginController.processLogin(USERNAME, "PASSWORD", response, model);
 
         assertEquals("error", returnVal);
-
         verify(model).addAttribute("credentials", true);
+        verify(response, never()).addCookie(any());
     }
 
     public void setUpUser(){

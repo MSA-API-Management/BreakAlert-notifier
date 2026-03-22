@@ -6,7 +6,6 @@ import com.kornfeld.notifier.entities.Subscription;
 import com.kornfeld.notifier.repositories.DataChangeRepository;
 import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
-import com.kornfeld.notifier.services.JWTService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
@@ -37,8 +36,6 @@ public class DashboardControllerTest {
     @Mock
     private RestTemplate restTemplate;
     @Mock
-    private JWTService jwtService;
-    @Mock
     private EntityManager entityManager;
 
     @InjectMocks
@@ -52,7 +49,6 @@ public class DashboardControllerTest {
     private static final String USERNAME = "testUser";
     private static final String EMAIL = "testUser@gmail.com";
     private static final String PASSWORD = "password";
-    private static final String JWT_TOKEN = "testToken";
 
     @BeforeEach
     public void setUp() {
@@ -70,17 +66,14 @@ public class DashboardControllerTest {
 
         dashboardController.setEntityManager(entityManager);
 
-        // Always verify the user
-        when(jwtService.isTokenTimeValid(JWT_TOKEN)).thenReturn(true);
-        when(jwtService.getUsername(JWT_TOKEN)).thenReturn(USERNAME);
-        when(userRepository.findByName(USERNAME)).thenReturn(user);
+        when(entityManager.merge(any(AppUser.class))).thenReturn(user);
     }
 
     @Test
     public void testShowDashboardNoStoredToken() {
         when(dataChangeRepository.findBySubscriptionId(anyLong())).thenReturn(new HashSet<>());
 
-        String returnVal = dashboardController.showDashboard(model, JWT_TOKEN);
+        String returnVal = dashboardController.showDashboard(model, user);
 
         assertEquals("dashboard", returnVal);
 
@@ -96,7 +89,7 @@ public class DashboardControllerTest {
         user.setToken("testToken");
         when(dataChangeRepository.findBySubscriptionId(anyLong())).thenReturn(new HashSet<>());
 
-        String returnVal = dashboardController.showDashboard(model, JWT_TOKEN);
+        String returnVal = dashboardController.showDashboard(model, user);
 
         assertEquals("dashboard", returnVal);
 
@@ -112,7 +105,7 @@ public class DashboardControllerTest {
     public void testShowDashboardNoDataChange() {
         when(dataChangeRepository.findBySubscriptionId(anyLong())).thenReturn(null);
 
-        String returnVal = dashboardController.showDashboard(model, JWT_TOKEN);
+        String returnVal = dashboardController.showDashboard(model, user);
 
         assertEquals("dashboard", returnVal);
 
@@ -126,22 +119,19 @@ public class DashboardControllerTest {
     public void testSubscribe() {
         when(subscriptionRepository.findById(1L)).thenReturn(Optional.of(new Subscription()));
 
-        String returnVal = dashboardController.subscribe(1L, JWT_TOKEN, model, redirectAttributes);
+        String returnVal = dashboardController.subscribe(1L, user, model, redirectAttributes);
 
         assertEquals("redirect:/dashboard", returnVal);
 
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("subscriptionSuccess"), eq(true));
         verify(model).addAttribute(eq("toSubscribe"), anyList());
     }
 
     @Test
     public void testSubscribeError() {
-        String returnVal = dashboardController.subscribe(200L, JWT_TOKEN, model, redirectAttributes);
+        String returnVal = dashboardController.subscribe(200L, user, model, redirectAttributes);
 
         assertEquals("redirect:/dashboard", returnVal);
-
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("subscriptionError"), eq(true));
         verify(model).addAttribute(eq("toSubscribe"), anyList());
     }
@@ -153,25 +143,24 @@ public class DashboardControllerTest {
 
         when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenReturn(postResponse);
 
-        String returnVal = dashboardController.saveToken("tokenLink", JWT_TOKEN, redirectAttributes, model);
+        String returnVal = dashboardController.saveToken("tokenLink", user, redirectAttributes, model);
 
         assertEquals("redirect:/clientConfirmation", returnVal);
 
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("urlFalse"), eq(false));
         verify(userRepository).save(any());
     }
+
     @Test
     public void testSaveToken_NotSuccessful() {
         ResponseEntity<String> postResponse = new ResponseEntity<>("response", HttpStatus.BAD_GATEWAY);
 
         when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenReturn(postResponse);
 
-        String returnVal = dashboardController.saveToken("tokenLink", JWT_TOKEN, redirectAttributes, model);
+        String returnVal = dashboardController.saveToken("tokenLink", user, redirectAttributes, model);
 
         assertEquals("redirect:/clientConfirmation", returnVal);
 
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("urlFalse"), eq(true));
         verify(userRepository, never()).save(any());
     }
@@ -180,11 +169,10 @@ public class DashboardControllerTest {
     public void testSaveToken_Error() {
         when(restTemplate.postForEntity(anyString(), any(), eq(String.class))).thenThrow(RestClientException.class);
 
-        String returnVal = dashboardController.saveToken("tokenLink", JWT_TOKEN, redirectAttributes, model);
+        String returnVal = dashboardController.saveToken("tokenLink", user, redirectAttributes, model);
 
         assertEquals("redirect:/clientConfirmation", returnVal);
 
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(model).addAttribute(eq("urlFalse"), eq(true));
         verify(userRepository, never()).save(any());
     }
@@ -192,43 +180,37 @@ public class DashboardControllerTest {
     @Test
     public void testClientConfirmationWithGitLabAvailable() {
         boolean gitLabAvailable = true;
-        String result = dashboardController.clientConfirmation(model, JWT_TOKEN, gitLabAvailable, redirectAttributes);
+        String result = dashboardController.clientConfirmation(model, user, gitLabAvailable, redirectAttributes);
 
         assertEquals("confirmClient", result);
 
         verify(model).addAttribute("urlCorrect", true);
-        verify(redirectAttributes).addAttribute("token", JWT_TOKEN);
     }
 
     @Test
     public void testClientConfirmationWithGitLabNotAvailable() {
         boolean gitLabAvailable = false;
-        String result = dashboardController.clientConfirmation(model, JWT_TOKEN, gitLabAvailable, redirectAttributes);
+        String result = dashboardController.clientConfirmation(model, user, gitLabAvailable, redirectAttributes);
 
         assertEquals("confirmClient", result);
 
         verify(model).addAttribute("urlWrong", true);
-        verify(redirectAttributes).addAttribute("token", JWT_TOKEN);
     }
 
     @Test
     public void testDeleteSubscription() {
         when(subscriptionRepository.findById(1L)).thenReturn(Optional.of(new Subscription()));
 
-        String returnVal = dashboardController.deleteSubscription(1L, JWT_TOKEN, model, redirectAttributes);
+        String returnVal = dashboardController.deleteSubscription(1L, user, model, redirectAttributes);
 
         assertEquals("redirect:/dashboard", returnVal);
-
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
     }
 
     @Test
     public void testDeleteSubscriptionError() {
-        String returnVal = dashboardController.deleteSubscription(200L, JWT_TOKEN, model, redirectAttributes);
+        String returnVal = dashboardController.deleteSubscription(200L, user, model, redirectAttributes);
 
         assertEquals("redirect:/dashboard", returnVal);
-
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
     }
 
     @Test
@@ -236,11 +218,10 @@ public class DashboardControllerTest {
         when(subscriptionRepository.findById(1L)).thenReturn(Optional.of(new Subscription()));
         when(subscriptionRepository.save(any(Subscription.class))).thenReturn(new Subscription());
 
-        String returnVal = dashboardController.changeSubscriptionName(1L, "newName", JWT_TOKEN, model, redirectAttributes);
+        String returnVal = dashboardController.changeSubscriptionName(1L, "newName", user, model, redirectAttributes);
 
         assertEquals("redirect:/dashboard", returnVal);
 
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(subscriptionRepository).save(any());
     }
 
@@ -248,21 +229,12 @@ public class DashboardControllerTest {
     public void testChangeSubscriptionName_Error() {
         when(subscriptionRepository.findById(1L)).thenReturn(Optional.empty());
 
-        String returnVal = dashboardController.changeSubscriptionName(1L, "newName", JWT_TOKEN, model, redirectAttributes);
+        String returnVal = dashboardController.changeSubscriptionName(1L, "newName", user, model, redirectAttributes);
 
         assertEquals("redirect:/dashboard", returnVal);
 
-        verify(redirectAttributes).addAttribute(eq("token"), eq(JWT_TOKEN));
         verify(subscriptionRepository, never()).save(any());
     }
-
-    @Test
-    public void testLogout() {
-        String returnVal = dashboardController.logout(model);
-
-        assertEquals("index", returnVal);
-    }
-
 
     public void setUpUser(){
         user.setId(1L);
@@ -273,6 +245,4 @@ public class DashboardControllerTest {
         subscription.setId(1L);
         user.getSubscriptions().add(subscription);
     }
-
-
 }
