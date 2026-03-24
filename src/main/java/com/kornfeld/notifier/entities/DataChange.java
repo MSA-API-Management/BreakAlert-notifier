@@ -14,6 +14,11 @@ public class DataChange {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(columnDefinition = "TEXT")
+    private String openApiOld;
+    @Column(columnDefinition = "TEXT")
+    private String openApiNew;
+
     @ManyToOne
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
@@ -61,5 +66,20 @@ public class DataChange {
         this.timestamp = timestamp;
     }
 
+    public String getOpenApiOld() {
+        return openApiOld;
+    }
+
+    public void setOpenApiOld(String openApiOld) {
+        this.openApiOld = openApiOld;
+    }
+
+    public String getOpenApiNew() {
+        return openApiNew;
+    }
+
+    public void setOpenApiNew(String openApiNew) {
+        this.openApiNew = openApiNew;
+    }
 }
 
