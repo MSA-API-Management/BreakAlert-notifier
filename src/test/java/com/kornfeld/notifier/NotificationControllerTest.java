@@ -85,7 +85,7 @@ public class NotificationControllerTest {
             return null;
         }).when(dataChangeRepository).save(any(DataChange.class));
 
-        ResponseEntity<String> responseEntity = controller.generateResponse("HTML Content", "testing.com", "main", null);
+        ResponseEntity<String> responseEntity = controller.generateResponse("HTML Content", null, null,"testing.com", "main", null);
 
         verify(subscriptionRepository, times(1)).findByAddressAndBranch("testing.com", "main");
         verify(htmlParser, times(1)).extractChanges("HTML Content");
@@ -131,7 +131,7 @@ public class NotificationControllerTest {
     @Test
     public void testGenerateResponse_SubscriptionNotFound() throws IOException {
         when(subscriptionRepository.findByAddressAndBranch(anyString(), anyString())).thenReturn(Optional.empty());
-        ResponseEntity<String> responseEntity = controller.generateResponse("<html><body><h1>test</h1></body></html>", "testing.com", "main", null);
+        ResponseEntity<String> responseEntity = controller.generateResponse("<html><body><h1>test</h1></body></html>", null, null,"testing.com", "main", null);
         verify(subscriptionRepository, times(1)).findByAddressAndBranch(anyString(), anyString());
 
         assertEquals("API Change was successfully processed.", responseEntity.getBody());

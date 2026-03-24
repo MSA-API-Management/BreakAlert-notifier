@@ -1,8 +1,8 @@
 mvn clean package -DskipTests
 
-docker build -t djamn/ndiff-notifier:latest .
+docker build -t djamn/ndiff-notifier-v2:latest .
 
 docker login
 
 echo "Pushing to Docker"
-docker push djamn/ndiff-notifier:latest
+docker push djamn/ndiff-notifier-v2:latest

@@ -23,6 +23,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -79,15 +80,17 @@ public class NotificationController {
 
     //Use RESTer tool to test it
     // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:30004/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
-    @PostMapping("/generate-response")
+    @PostMapping(value="/generate-response", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<String> generateResponse(
-            @RequestBody String markdownContent,
+            @RequestPart("markdown") String markdownContent,
+            @RequestPart(value = "oldSpec", required = false) String oldSpec,
+            @RequestPart(value = "newSpec", required = false) String newSpec,
             @RequestParam(value = "address") String address,
             @RequestParam(value = "branch") String branch,
             Model model
     ) throws IOException {
-        System.out.println("TESTING");
+        if(oldSpec !=null) System.out.println("DEBUG " + oldSpec);
         Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
 
         if (desiredSub.isPresent()) {
@@ -104,6 +107,8 @@ public class NotificationController {
                     "### Summary\n" + gptResponse + "\n\n" +
                             "---\n" + cleanDetailedChanges + "\n\n" +
                             "---\n" +
+                            "**API Examples (new version)**\n" +
+                            "Currently not implemented\n" +
                             "**Subscription Details:**\n" +
                             "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
             String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
@@ -124,7 +129,7 @@ public class NotificationController {
                             System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
                             System.out.println("NOTIFICATION - Sending email... ");
                             System.out.println("NOTIFICATION - WARNING: EMAIL SENDING CURRENTLY DISABLED");
-                            emailSender.sendEmail(user.getEmail(), emailSubject, finalHtmlContent); // TODO not adapted for email responses
+//                            emailSender.sendEmail(user.getEmail(), emailSubject, finalHtmlContent); // TODO not adapted for email responses
                         }
 
                         // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
