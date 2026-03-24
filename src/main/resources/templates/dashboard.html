@@ -52,8 +52,8 @@
                         <span th:text="${dataChanges.timestamp}"></span><br>
                         <div th:utext="${dataChanges.content}" id="content"></div>
                         <div th:if="${dataChanges.openApiOld != null && dataChanges.openApiNew != null}">
-                            <button th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''">Old Spec</button>
-                            <button th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''">New Spec</button>
+                            <button th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''">⬇ Old Spec</button>
+                            <button th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''">⬇ New Spec</button>
                         </div>
                         <br>
                     </li>
