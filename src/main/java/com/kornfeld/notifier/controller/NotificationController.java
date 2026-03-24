@@ -21,7 +21,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.client.RestClientException;
@@ -78,6 +77,7 @@ public class NotificationController {
         this.emailSender = emailSender;
     }
 
+    // TODO proper error handling
     //Use RESTer tool to test it
     // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:30004/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
     @PostMapping(value="/generate-response", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -90,7 +90,6 @@ public class NotificationController {
             @RequestParam(value = "branch") String branch,
             Model model
     ) throws IOException {
-        if(oldSpec !=null) System.out.println("DEBUG " + oldSpec);
         Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
 
         if (desiredSub.isPresent()) {
@@ -107,8 +106,8 @@ public class NotificationController {
                     "### Summary\n" + gptResponse + "\n\n" +
                             "---\n" + cleanDetailedChanges + "\n\n" +
                             "---\n" +
-                            "**API Examples (new version)**\n" +
-                            "Currently not implemented\n" +
+                            "**API Examples (new version):**\n" +
+                            "Currently not implemented\n\n" +
                             "**Subscription Details:**\n" +
                             "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
             String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
@@ -118,6 +117,8 @@ public class NotificationController {
             DataChange dataChange = new DataChange();
             dataChange.setTitle(emailSubject);
             dataChange.setContent(finalHtmlContent);
+            dataChange.setOpenApiOld(oldSpec);
+            dataChange.setOpenApiNew(newSpec);
 
             List<AppUser> users = userRepository.findAll();
 
