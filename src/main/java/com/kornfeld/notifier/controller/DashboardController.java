@@ -8,12 +8,10 @@ import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.JWTService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.apache.coyote.Response;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,8 +22,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Controller
@@ -188,6 +188,38 @@ public class DashboardController {
         }
 
         return "redirect:/dashboard";
+    }
+
+    @GetMapping("/download/old/{id}")
+    public ResponseEntity<byte[]> downloadOldOpenApiDesc(@PathVariable Long id) {
+        DataChange change = dataChangeRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String json = change.getOpenApiOld();
+
+        if (json == null){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=old-openapi.json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @GetMapping("/download/new/{id}")
+    public ResponseEntity<byte[]> downloadNewOpenApiDesc(@PathVariable Long id) {
+        DataChange change = dataChangeRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String json = change.getOpenApiNew();
+
+        if (json == null){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=new-openapi.json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(json.getBytes(StandardCharsets.UTF_8));
     }
 
     // TODO IDOR RISK (also for other endpoints)
