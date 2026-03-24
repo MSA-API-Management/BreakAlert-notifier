@@ -57,22 +57,6 @@ public class SecurityConfiguration {
 
         return http.build();
     }
-
-   /* @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(List.of("http://localhost:30004"));
-        configuration.setAllowedMethods(List.of("GET","POST"));
-        configuration.setAllowedHeaders(List.of("Authorization","authorization","Content-Type"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration("/**",configuration);
-
-        return source;
-    } */
-
 }
 
 
