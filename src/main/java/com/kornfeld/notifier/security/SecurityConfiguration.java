@@ -40,6 +40,7 @@ public class SecurityConfiguration {
                                 "/js/**",
                                 "/generate-response",
                                 "/processAll",
+                                "/error",
                                 "/sendTest")
                         .permitAll()
                         .anyRequest().authenticated()
