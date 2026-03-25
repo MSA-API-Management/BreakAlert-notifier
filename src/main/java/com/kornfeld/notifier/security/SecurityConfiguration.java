@@ -39,7 +39,7 @@ public class SecurityConfiguration {
                                 "/css/**",
                                 "/js/**",
                                 "/generate-response",
-                                "/processAll",
+                                "/subscriptions/processAll",
                                 "/error",
                                 "/sendTest")
                         .permitAll()
