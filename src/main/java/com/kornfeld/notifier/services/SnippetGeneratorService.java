@@ -6,13 +6,21 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class SnippetGeneratorService {
+    private static final int SAMPLE_LIMIT = 5;
+
     public String generateCurlExamples(String openApiJson,
-                                       String address) {
+                                       String address,
+                                       Set<String> targetEndpoints) {
         if (openApiJson == null || openApiJson.isEmpty()) {
             return "No OpenAPI spec provided to generate API usage examples\n";
+        }
+
+        if (targetEndpoints == null || targetEndpoints.isEmpty()) {
+            return "No new or changed endpoints detected.\n";
         }
 
         try {
@@ -38,44 +46,50 @@ public class SnippetGeneratorService {
             int count = 0;
 
             for (Map.Entry<String, PathItem> entry : openAPI.getPaths().entrySet()) {
-                if (count >= 5) break; // TODO const
+                if (count >= SAMPLE_LIMIT) break;
 
                 String path = entry.getKey();
+                if (!path.startsWith("/")) path = "/" + path;
+
+                String fullUrl = baseUrl + path;
                 PathItem pathItem = entry.getValue();
 
-                if (pathItem.getGet() != null) {
-                    samples.append("**GET ").append(path).append("**\n");
-                    samples.append("```bash\ncurl -X GET \"").append(baseUrl).append(path).append("\"\n```\n\n");
+                if (pathItem.getGet() != null && targetEndpoints.contains("GET " + path)) {
+                    samples.append("**``GET`` ").append(path).append("**\n");
+                    samples.append("```bash\ncurl -X GET \"").append(fullUrl).append("\"\n```\n\n");
                     count++;
                 }
 
-                if (pathItem.getPost() != null) {
-                    samples.append("**POST ").append(path).append("**\n");
-                    samples.append("```bash\ncurl -X POST \"").append(baseUrl).append(path)
+                if (pathItem.getPost() != null && targetEndpoints.contains("POST " + path)) {
+                    samples.append("**``POST`` ").append(path).append("**\n");
+                    samples.append("```bash\ncurl -X POST \"").append(fullUrl)
                             .append("\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{}'\n```\n\n");
                     count++;
                 }
 
-                if (pathItem.getPut() != null) {
-                    samples.append("**PUT ").append(path).append("**\n");
-                    samples.append("```bash\ncurl -X PUT \"").append(baseUrl).append(path)
+                if (pathItem.getPut() != null && targetEndpoints.contains("PUT " + path)) {
+                    samples.append("**``PUT`` ").append(path).append("**\n");
+                    samples.append("```bash\ncurl -X PUT \"").append(fullUrl)
                             .append("\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{}'\n```\n\n");
                     count++;
                 }
-                if (pathItem.getPatch() != null) {
-                    samples.append("**PATCH ").append(path).append("**\n");
-                    samples.append("```bash\ncurl -X PATCH \"").append(baseUrl).append(path)
+                if (pathItem.getPatch() != null && targetEndpoints.contains("PATCH " + path)) {
+                    samples.append("**``PATCH`` ").append(path).append("**\n");
+                    samples.append("```bash\ncurl -X PATCH \"").append(fullUrl)
                             .append("\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{}'\n```\n\n");
                     count++;
                 }
-                if (pathItem.getDelete() != null) {
-                    samples.append("**DELETE ").append(path).append("**\n");
-                    samples.append("```bash\ncurl -X DELETE \"").append(baseUrl).append(path).append("\"\n```\n\n");
+                if (pathItem.getDelete() != null && targetEndpoints.contains("DELETE " + path)) {
+                    samples.append("**``DELETE`` ").append(path).append("**\n");
+                    samples.append("```bash\ncurl -X DELETE \"").append(fullUrl).append("\"\n```\n\n");
                     count++;
                 }
 
             }
+
+            if (samples.isEmpty()) return "No samples found\n";
             return samples.toString();
+
         } catch (Exception e) {
             System.err.println("Error generating API usage examples: " + e.getMessage());
             return "Error occurred while generating API examples.\n";
