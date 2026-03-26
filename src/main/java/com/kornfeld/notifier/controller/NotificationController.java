@@ -9,6 +9,7 @@ import com.kornfeld.notifier.entities.Subscription;
 import com.kornfeld.notifier.repositories.DataChangeRepository;
 import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
+import com.kornfeld.notifier.services.SnippetGeneratorService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.commonmark.parser.Parser;
@@ -39,6 +40,7 @@ import java.util.Set;
 public class NotificationController {
 
     private final GptAPIService gpt3ApiService;
+    private final SnippetGeneratorService snippetGeneratorService;
     private final HTMLParser htmlParser;
     @Autowired
     private EmailSender emailSender;
@@ -57,8 +59,9 @@ public class NotificationController {
 
     private final UserRepository userRepository;
 
-    public NotificationController(GptAPIService gpt3ApiService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
+    public NotificationController(GptAPIService gpt3ApiService, SnippetGeneratorService snippetGeneratorService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
         this.gpt3ApiService = gpt3ApiService;
+        this.snippetGeneratorService = snippetGeneratorService;
         this.htmlParser = htmlParser;
         this.restTemplate = restTemplate.build();
         this.dataChangeRepository = dataChangeRepository;
@@ -100,6 +103,8 @@ public class NotificationController {
             String gptResponse = "Currently no summary";
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
+            String apiUsageExamples = snippetGeneratorService.generateCurlExamples(newSpec);
+
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 
             String combinedMarkdown =
@@ -107,7 +112,7 @@ public class NotificationController {
                             "---\n" + cleanDetailedChanges + "\n\n" +
                             "---\n" +
                             "**API Examples (new version):**\n" +
-                            "Currently not implemented\n\n" +
+                            apiUsageExamples + "\n\n" +
                             "**Subscription Details:**\n" +
                             "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
             String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
