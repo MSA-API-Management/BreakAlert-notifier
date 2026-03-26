@@ -103,7 +103,7 @@ public class NotificationController {
             String gptResponse = "Currently no summary";
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
-            String apiUsageExamples = snippetGeneratorService.generateCurlExamples(newSpec);
+            String apiUsageExamples = snippetGeneratorService.generateCurlExamples(newSpec, address);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 
@@ -115,12 +115,12 @@ public class NotificationController {
                             apiUsageExamples + "\n\n" +
                             "**Subscription Details:**\n" +
                             "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
-            String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
 
-            String emailSubject = "Change(s) in " + desiredSub.get().getSubName() + " detected";
+            String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
+            String title = "Change(s) in " + desiredSub.get().getSubName() + " detected";
 
             DataChange dataChange = new DataChange();
-            dataChange.setTitle(emailSubject);
+            dataChange.setTitle(title);
             dataChange.setContent(finalHtmlContent);
             dataChange.setOpenApiOld(oldSpec);
             dataChange.setOpenApiNew(newSpec);
@@ -131,25 +131,12 @@ public class NotificationController {
                 Set<Subscription> subscriptions = user.getSubscriptions();
                 for (Subscription subscription : subscriptions) {
                     if (subscription.getAddress().equals(address) && subscription.getBranch().equals(branch)) {
-                        if (user.getEmail()!=null) {
-                            System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
-                            System.out.println("NOTIFICATION - Sending email... ");
-                            System.out.println("NOTIFICATION - WARNING: EMAIL SENDING CURRENTLY DISABLED");
-//                            emailSender.sendEmail(user.getEmail(), emailSubject, finalHtmlContent); // TODO not adapted for email responses
-                        }
-
-                        // Storing with multiple users is not a problem -> stores it only one time (because DataChange Object is created only once)
                         System.out.println("NOTIFICATION - Storing all info...");
                         storeDataChange(dataChange, subscription);
                         System.out.println("NOTIFICATION - Stored data change successfully");
 
-                        if(user.getToken()!=null) {
-                            System.out.println("NOTIFICATION - User is registered as a Client in GitLab");
-                            // POST request for Teams and GitLab
-                            String apiUrl = user.getToken();
-                            System.out.println("NOTIFICATION - WARNING: TICKET CREATION CURRENTLY DISABLED");
-//                            sendPostRequest(apiUrl, gptResponse, "API Changes"); // TODO new response not adapted for ticket description
-                        }
+                        trySendEmailNotification(user, subscription, dataChange);
+                        trySendSubscriptionNotification(user, dataChange);
                     }
                 }
             }
@@ -177,9 +164,29 @@ public class NotificationController {
         return content.trim();
     }
 
-    private boolean sendPostRequest(String apiUrl, String response, String title) {
-        boolean successfulRequest = false;
+    // TODO rework
+    private void trySendEmailNotification(AppUser user, Subscription subscription, DataChange dataChange) {
+        if (user.getEmail()!=null) {
+            System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
+            System.out.println("NOTIFICATION - Sending email... ");
+            System.out.println("NOTIFICATION - WARNING: EMAIL SENDING CURRENTLY DISABLED");
+//            emailSender.sendEmail(user.getEmail(), dataChange.getTitle(), dataChange.getChangeSummary());
+        }
+    }
 
+
+    // Todo rework (also add jd)
+    // POST request for Teams and GitLab
+    private void trySendSubscriptionNotification(AppUser user, DataChange dataChange) {
+        if(user.getToken()!=null) {
+            String apiUrl = user.getToken();
+            System.out.println("NOTIFICATION - User is registered as a Client in GitLab");
+            System.out.println("NOTIFICATION - WARNING: TICKET CREATION CURRENTLY DISABLED");
+            // sendPostRequest(apiUrl, dataChange.getChangeSummary();, "API Changes");
+        }
+    }
+
+    private void sendPostRequest(String apiUrl, String response, String title) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -195,7 +202,6 @@ public class NotificationController {
             if (postResponse != null) {
                 if (postResponse.getStatusCode().is2xxSuccessful()) {
                     System.out.println("NOTIFICATION - POST request successful. Response: " + postResponse.getBody());
-                    successfulRequest = true;
                 } else {
                     System.out.println("NOTIFICATION - POST request failed. Response: " + postResponse.getBody());
                 }
@@ -205,7 +211,6 @@ public class NotificationController {
         } catch (RestClientException e) {
             System.out.println("NOTIFICATION - Error while making POST request: " + e.getMessage());
         }
-        return successfulRequest;
     }
 
     private void storeDataChange(DataChange dataChange, Subscription subscription){
