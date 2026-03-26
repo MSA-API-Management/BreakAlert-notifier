@@ -1,14 +1,14 @@
 package com.kornfeld.notifier.controller;
 
-import com.kornfeld.notifier.services.EmailSender;
-import com.kornfeld.notifier.services.GptAPIService;
-import com.kornfeld.notifier.services.HTMLParser;
 import com.kornfeld.notifier.entities.AppUser;
 import com.kornfeld.notifier.entities.DataChange;
 import com.kornfeld.notifier.entities.Subscription;
 import com.kornfeld.notifier.repositories.DataChangeRepository;
 import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
+import com.kornfeld.notifier.services.EmailSender;
+import com.kornfeld.notifier.services.GptAPIService;
+import com.kornfeld.notifier.services.HTMLParser;
 import com.kornfeld.notifier.services.SnippetGeneratorService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -28,10 +28,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-
 import java.time.LocalDateTime;
-
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 
 @Controller
@@ -57,7 +58,13 @@ public class NotificationController {
 
     private final UserRepository userRepository;
 
-    public NotificationController(GptAPIService gpt3ApiService, SnippetGeneratorService snippetGeneratorService, HTMLParser htmlParser, RestTemplateBuilder restTemplate, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
+    public NotificationController(GptAPIService gpt3ApiService,
+                                  SnippetGeneratorService snippetGeneratorService,
+                                  HTMLParser htmlParser,
+                                  RestTemplateBuilder restTemplate,
+                                  DataChangeRepository dataChangeRepository,
+                                  SubscriptionRepository subscriptionRepository,
+                                  UserRepository userRepository) {
         this.gpt3ApiService = gpt3ApiService;
         this.snippetGeneratorService = snippetGeneratorService;
         this.htmlParser = htmlParser;
@@ -79,7 +86,7 @@ public class NotificationController {
     }
 
     // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
-    @PostMapping(value="/generate-response", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/generate-response", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<String> generateResponse(
             @RequestPart("markdown") String markdownContent,
@@ -163,8 +170,10 @@ public class NotificationController {
     }
 
     // TODO rework
-    private void trySendEmailNotification(AppUser user, Subscription subscription, DataChange dataChange) {
-        if (user.getEmail()!=null) {
+    private void trySendEmailNotification(AppUser user,
+                                          Subscription subscription,
+                                          DataChange dataChange) {
+        if (user.getEmail() != null) {
             System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
             System.out.println("NOTIFICATION - Sending email... ");
             System.out.println("NOTIFICATION - WARNING: EMAIL SENDING CURRENTLY DISABLED");
@@ -175,8 +184,9 @@ public class NotificationController {
 
     // Todo rework (also add jd)
     // POST request for Teams and GitLab
-    private void trySendSubscriptionNotification(AppUser user, DataChange dataChange) {
-        if(user.getToken()!=null) {
+    private void trySendSubscriptionNotification(AppUser user,
+                                                 DataChange dataChange) {
+        if (user.getToken() != null) {
             String apiUrl = user.getToken();
             System.out.println("NOTIFICATION - User is registered as a Client in GitLab");
             System.out.println("NOTIFICATION - WARNING: TICKET CREATION CURRENTLY DISABLED");
@@ -192,7 +202,7 @@ public class NotificationController {
         String[] lines = markdown.split("\\r?\\n");
         boolean tracking = false;
 
-        for(String line : lines) {
+        for (String line : lines) {
             String cleanLine = line.replace("**", "")
                     .replace("#", "")
                     .replace("`", "");
@@ -206,7 +216,7 @@ public class NotificationController {
                 continue;
             }
 
-            if(tracking) {
+            if (tracking) {
                 if (trimmed.startsWith("GET ") || trimmed.startsWith("POST ") ||
                         trimmed.startsWith("PUT ") || trimmed.startsWith("PATCH ") ||
                         trimmed.startsWith("DELETE ")) {
@@ -219,7 +229,9 @@ public class NotificationController {
         return endpoints;
     }
 
-    private void sendPostRequest(String apiUrl, String response, String title) {
+    private void sendPostRequest(String apiUrl,
+                                 String response,
+                                 String title) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
@@ -246,7 +258,8 @@ public class NotificationController {
         }
     }
 
-    private void storeDataChange(DataChange dataChange, Subscription subscription){
+    private void storeDataChange(DataChange dataChange,
+                                 Subscription subscription) {
         dataChange.setSubscription(subscription);
         dataChange.setTimestamp(LocalDateTime.now());
         dataChangeRepository.save(dataChange);
