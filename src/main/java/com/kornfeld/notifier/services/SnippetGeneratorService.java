@@ -9,7 +9,8 @@ import java.util.Map;
 
 @Service
 public class SnippetGeneratorService {
-    public String generateCurlExamples(String openApiJson) {
+    public String generateCurlExamples(String openApiJson,
+                                       String address) {
         if (openApiJson == null || openApiJson.isEmpty()) {
             return "No OpenAPI spec provided to generate API usage examples\n";
         }
@@ -21,9 +22,18 @@ public class SnippetGeneratorService {
                 return "Could not parse OpenAPI description\n";
             }
 
-            StringBuilder samples = new StringBuilder();
+            String baseUrl = address;
+            if (baseUrl != null && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+                baseUrl = "https://" + baseUrl;
+            } else if (baseUrl == null) {
+                baseUrl = "http://api.example.com";
+            }
 
-            String baseUrl = (openAPI.getServers() != null && !openAPI.getServers().isEmpty()) ? openAPI.getServers().get(0).getUrl() : "http://api.example.com";
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+            }
+
+            StringBuilder samples = new StringBuilder();
 
             int count = 0;
 
