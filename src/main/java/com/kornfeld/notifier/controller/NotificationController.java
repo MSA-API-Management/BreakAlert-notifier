@@ -31,9 +31,7 @@ import java.io.IOException;
 
 import java.time.LocalDateTime;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Controller
@@ -80,9 +78,7 @@ public class NotificationController {
         this.emailSender = emailSender;
     }
 
-    // TODO proper error handling
-    //Use RESTer tool to test it
-    // or: C:\Users\kornd\OneDrive - Alpen-Adria Universität Klagenfurt\Dokumente\5. Semester WS23\Projekt\notifier>curl --location --request POST "http://localhost:30004/generate-response?address=test3.com&branch=main" --header "Content-Type: text/html" -d @./src/main/resources/api_changes.html
+    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
     @PostMapping(value="/generate-response", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<String> generateResponse(
@@ -103,7 +99,8 @@ public class NotificationController {
             String gptResponse = "Currently no summary";
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
-            String apiUsageExamples = snippetGeneratorService.generateCurlExamples(newSpec, address);
+            Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
+            String apiUsageExamples = snippetGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 
@@ -113,6 +110,7 @@ public class NotificationController {
                             "---\n" +
                             "**API Examples (new version):**\n" +
                             apiUsageExamples + "\n\n" +
+                            "---\n" +
                             "**Subscription Details:**\n" +
                             "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
 
@@ -184,6 +182,41 @@ public class NotificationController {
             System.out.println("NOTIFICATION - WARNING: TICKET CREATION CURRENTLY DISABLED");
             // sendPostRequest(apiUrl, dataChange.getChangeSummary();, "API Changes");
         }
+    }
+
+    private Set<String> extractModifiedEndpoints(String markdown) {
+        Set<String> endpoints = new HashSet<>();
+
+        if (markdown == null || markdown.isEmpty()) return endpoints;
+
+        String[] lines = markdown.split("\\r?\\n");
+        boolean tracking = false;
+
+        for(String line : lines) {
+            String cleanLine = line.replace("**", "")
+                    .replace("#", "")
+                    .replace("`", "");
+            String trimmed = cleanLine.trim();
+
+            if (trimmed.equalsIgnoreCase("What's New") || trimmed.equalsIgnoreCase("What's Changed")) {
+                tracking = true;
+                continue;
+            } else if (trimmed.equalsIgnoreCase("What's Deleted") || trimmed.equalsIgnoreCase("What's Deprecated") || trimmed.equalsIgnoreCase("Result")) {
+                tracking = false;
+                continue;
+            }
+
+            if(tracking) {
+                if (trimmed.startsWith("GET ") || trimmed.startsWith("POST ") ||
+                        trimmed.startsWith("PUT ") || trimmed.startsWith("PATCH ") ||
+                        trimmed.startsWith("DELETE ")) {
+
+                    endpoints.add(trimmed);
+                }
+            }
+        }
+
+        return endpoints;
     }
 
     private void sendPostRequest(String apiUrl, String response, String title) {
