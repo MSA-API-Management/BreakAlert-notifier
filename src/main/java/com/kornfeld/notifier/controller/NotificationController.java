@@ -9,7 +9,7 @@ import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.EmailSender;
 import com.kornfeld.notifier.services.GptAPIService;
 import com.kornfeld.notifier.services.HTMLParser;
-import com.kornfeld.notifier.services.SnippetGeneratorService;
+import com.kornfeld.notifier.services.OpenApiUsageExampleService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.commonmark.parser.Parser;
@@ -38,8 +38,8 @@ import java.util.Set;
 @Controller
 public class NotificationController {
 
-    private final GptAPIService gpt3ApiService;
-    private final SnippetGeneratorService snippetGeneratorService;
+    private final GptAPIService gptApiService;
+    private final OpenApiUsageExampleService openApiUsageExampleService;
     private final HTMLParser htmlParser;
     @Autowired
     private EmailSender emailSender;
@@ -47,9 +47,9 @@ public class NotificationController {
     private final Parser markdownParser;
     private final HtmlRenderer htmlRenderer;
 
-    private DataChangeRepository dataChangeRepository;
+    private final DataChangeRepository dataChangeRepository;
 
-    private SubscriptionRepository subscriptionRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
     private RestTemplate restTemplate;
 
@@ -58,15 +58,15 @@ public class NotificationController {
 
     private final UserRepository userRepository;
 
-    public NotificationController(GptAPIService gpt3ApiService,
-                                  SnippetGeneratorService snippetGeneratorService,
+    public NotificationController(GptAPIService gptApiService,
+                                  OpenApiUsageExampleService openApiUsageExampleService,
                                   HTMLParser htmlParser,
                                   RestTemplateBuilder restTemplate,
                                   DataChangeRepository dataChangeRepository,
                                   SubscriptionRepository subscriptionRepository,
                                   UserRepository userRepository) {
-        this.gpt3ApiService = gpt3ApiService;
-        this.snippetGeneratorService = snippetGeneratorService;
+        this.gptApiService = gptApiService;
+        this.openApiUsageExampleService = openApiUsageExampleService;
         this.htmlParser = htmlParser;
         this.restTemplate = restTemplate.build();
         this.dataChangeRepository = dataChangeRepository;
@@ -102,12 +102,12 @@ public class NotificationController {
             System.out.println("NOTIFICATION - Received a request successfully");
             System.out.println("NOTIFICATION - Markdown File: " + markdownContent);
 
-//            String gptResponse = gpt3ApiService.generateResponse(markdownContent);
+//            String gptResponse = gptApiService.generateResponse(markdownContent);
             String gptResponse = "Currently no summary";
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
             Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
-            String apiUsageExamples = snippetGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
+            String apiUsageExamples = openApiUsageExampleService.generateCurlExamples(newSpec, address, modifiedEndpoints);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 

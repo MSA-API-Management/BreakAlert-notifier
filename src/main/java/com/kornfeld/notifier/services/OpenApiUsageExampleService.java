@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-public class SnippetGeneratorService {
+public class OpenApiUsageExampleService {
     private static final int SAMPLE_LIMIT = 5;
 
     public String generateCurlExamples(String openApiJson,
