@@ -22,6 +22,13 @@ public class OpenApiExampleGeneratorService {
     private static final int SAMPLE_LIMIT = 5;
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Generates curl examples for selected endpoints from an OpenAPI specification
+     * @param openApiJson OpenAPI specification as JSON
+     * @param address base address of the API
+     * @param targetEndpoints endpoints to include (method + path)
+     * @return generated curl examples or an error/message string
+     */
     public String generateCurlExamples(String openApiJson,
                                        String address,
                                        Set<String> targetEndpoints) {
@@ -69,6 +76,18 @@ public class OpenApiExampleGeneratorService {
         }
     }
 
+    /**
+     * Generates a curl example in markdown format for a matching operation
+     * @param method
+     * @param rawPath
+     * @param operation
+     * @param baseUrl
+     * @param samples
+     * @param count
+     * @param targetEndpoints
+     * @param openAPI
+     * @return updated sample count
+     */
     private int processOperation(
             String method,
             String rawPath,
@@ -122,6 +141,11 @@ public class OpenApiExampleGeneratorService {
         return count + 1;
     }
 
+    /**
+     * Creates the base url. The base url is a combination of the provided address and URL protocol
+     * @param address Provider subscription address
+     * @return normalized url or fallback sample url
+     */
     private String generateBaseUrl(String address) {
         String baseUrl = address;
         if (baseUrl != null && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
@@ -136,6 +160,11 @@ public class OpenApiExampleGeneratorService {
         return baseUrl;
     }
 
+    /**
+     * Extracts response Accept header values from successful (2xx) responses.
+     * @param operation OpenAPI operation
+     * @return a comma-separated list of media types or a fallback if none found
+     */
     private String extractResponseAcceptHeader(Operation operation) {
         String acceptHeader = "*/*";
         if (operation.getResponses() != null) {
@@ -152,6 +181,12 @@ public class OpenApiExampleGeneratorService {
         return acceptHeader;
     }
 
+    /**
+     * Generates a sample JSON string from the given request body schema
+     * @param requestBody Request body definition
+     * @param openAPI OpenAPI specification
+     * @return JSON sample string or "{}" if unavailable or error
+     */
     private String extractSampleJson(RequestBody requestBody,
                                      OpenAPI openAPI) {
         if (requestBody.getContent() == null) return "{}";
@@ -172,6 +207,13 @@ public class OpenApiExampleGeneratorService {
         }
     }
 
+    /**
+     * Recursively builds mock data for a given schema, resolving references,
+     * objects, arrays, and primitive types.
+     * @param schema Schema to process
+     * @param openAPI OpenAPI specification
+     * @return a mock object matching the schema or null if schema is null
+     */
     private Object buildMockData(Schema<?> schema,
                                  OpenAPI openAPI) {
         if (schema == null) return null;
@@ -207,5 +249,3 @@ public class OpenApiExampleGeneratorService {
     }
 
 }
-
-// TODO ggf möglichkeit zum auf/zuklappen der api usage examples, ggf. kopiermöglichkeit und execute button
