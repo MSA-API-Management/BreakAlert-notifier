@@ -9,7 +9,7 @@ import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.EmailSender;
 import com.kornfeld.notifier.services.GptAPIService;
 import com.kornfeld.notifier.services.HTMLParser;
-import com.kornfeld.notifier.services.OpenApiUsageExampleService;
+import com.kornfeld.notifier.services.OpenApiExampleGeneratorService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.commonmark.parser.Parser;
@@ -39,7 +39,7 @@ import java.util.Set;
 public class NotificationController {
 
     private final GptAPIService gptApiService;
-    private final OpenApiUsageExampleService openApiUsageExampleService;
+    private final OpenApiExampleGeneratorService openApiExampleGeneratorService;
     private final HTMLParser htmlParser;
     @Autowired
     private EmailSender emailSender;
@@ -59,14 +59,14 @@ public class NotificationController {
     private final UserRepository userRepository;
 
     public NotificationController(GptAPIService gptApiService,
-                                  OpenApiUsageExampleService openApiUsageExampleService,
+                                  OpenApiExampleGeneratorService openApiExampleGeneratorService,
                                   HTMLParser htmlParser,
                                   RestTemplateBuilder restTemplate,
                                   DataChangeRepository dataChangeRepository,
                                   SubscriptionRepository subscriptionRepository,
                                   UserRepository userRepository) {
         this.gptApiService = gptApiService;
-        this.openApiUsageExampleService = openApiUsageExampleService;
+        this.openApiExampleGeneratorService = openApiExampleGeneratorService;
         this.htmlParser = htmlParser;
         this.restTemplate = restTemplate.build();
         this.dataChangeRepository = dataChangeRepository;
@@ -107,7 +107,7 @@ public class NotificationController {
             System.out.println("NOTIFICATION - Generated response:" + gptResponse);
 
             Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
-            String apiUsageExamples = openApiUsageExampleService.generateCurlExamples(newSpec, address, modifiedEndpoints);
+            String apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 

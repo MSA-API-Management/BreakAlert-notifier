@@ -1,7 +1,9 @@
 package com.kornfeld.notifier.services;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.springframework.stereotype.Service;
 
@@ -9,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
-public class OpenApiUsageExampleService {
+public class OpenApiExampleGeneratorService {
     private static final int SAMPLE_LIMIT = 5;
 
     public String generateCurlExamples(String openApiJson,
@@ -54,7 +56,13 @@ public class OpenApiUsageExampleService {
                 String fullUrl = baseUrl + path;
                 PathItem pathItem = entry.getValue();
 
-                if (pathItem.getGet() != null && targetEndpoints.contains("GET " + path)) {
+                count = processOperation("GET", path, pathItem.getGet(), baseUrl, samples, count, targetEndpoints, openAPI);
+                count = processOperation("POST", path, pathItem.getPost(), baseUrl, samples, count, targetEndpoints, openAPI);
+                count = processOperation("PUT", path, pathItem.getPut(), baseUrl, samples, count, targetEndpoints, openAPI);
+                count = processOperation("PATCH", path, pathItem.getPatch(), baseUrl, samples, count, targetEndpoints, openAPI);
+                count = processOperation("DELETE", path, pathItem.getDelete(), baseUrl, samples, count, targetEndpoints, openAPI);
+
+                /*if (pathItem.getGet() != null && targetEndpoints.contains("GET " + path)) {
                     samples.append("**``GET`` ").append(path).append("**\n");
                     samples.append("```bash\ncurl -X GET \"").append(fullUrl).append("\"\n```\n\n");
                     count++;
@@ -83,7 +91,7 @@ public class OpenApiUsageExampleService {
                     samples.append("**``DELETE`` ").append(path).append("**\n");
                     samples.append("```bash\ncurl -X DELETE \"").append(fullUrl).append("\"\n```\n\n");
                     count++;
-                }
+                }*/
 
             }
 
@@ -95,6 +103,56 @@ public class OpenApiUsageExampleService {
             return "Error occurred while generating API examples.\n";
         }
     }
+
+    // TODO requestbody & proper accept
+    private int processOperation(
+            String method,
+            String rawPath,
+            Operation operation,
+            String baseUrl,
+            StringBuilder samples,
+            int count,
+            Set<String> targetEndpoints,
+            OpenAPI openAPI
+    ) {
+        if (operation == null || count >= SAMPLE_LIMIT) return count;
+
+        String endpointKey = method + " " + rawPath;
+        if (!targetEndpoints.contains(endpointKey)) return count;
+
+        String resolvedPath = rawPath.replaceAll("\\{([^}]+)}", "123");
+
+        StringBuilder query = new StringBuilder();
+        if (operation.getParameters() != null) {
+            for (Parameter p : operation.getParameters()) {
+                if ("query".equals(p.getIn())) {
+                    query.append(query.isEmpty() ? "?" : "&");
+                    query.append(p.getName()).append("=").append("value");
+                }
+            }
+        }
+
+        String fullUrl = baseUrl + resolvedPath + query;
+
+        samples.append("**``").append(method).append("`` ").append(rawPath).append("**\n");
+        samples.append("```bash\n");
+        samples.append("curl -X ").append(method).append(" \"").append(fullUrl).append("\"");
+        samples.append(" \\\n  -H \"accept: application/json\"");
+
+        if (operation.getRequestBody() != null &&
+                ("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method))) {
+
+            String exampleJson = "{ }";
+
+            samples.append(" \\\n  -H \"Content-Type: application/json\"");
+            samples.append(" \\\n  -d '").append(exampleJson).append("'");
+        }
+
+        samples.append("\n```\n\n");
+
+        return count + 1;
+    }
+
 }
 
-// TODO ggf möglichkeit zum auf/zuklappen der api usage examples, ggf. kopiermöglichkeit und execute button, nur anzeigen von beispielen aus whats new/changed zb
+// TODO ggf möglichkeit zum auf/zuklappen der api usage examples, ggf. kopiermöglichkeit und execute button
