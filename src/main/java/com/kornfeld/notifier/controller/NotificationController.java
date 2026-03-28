@@ -53,9 +53,6 @@ public class NotificationController {
 
     private RestTemplate restTemplate;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     private final UserRepository userRepository;
 
     public NotificationController(GptAPIService gptApiService,
@@ -95,7 +92,7 @@ public class NotificationController {
             @RequestParam(value = "address") String address,
             @RequestParam(value = "branch") String branch,
             Model model
-    ) throws IOException {
+    ) {
         Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
 
         if (desiredSub.isPresent()) {
