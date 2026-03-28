@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.springframework.stereotype.Service;
 
@@ -101,14 +102,18 @@ public class OpenApiExampleGeneratorService {
         samples.append("**``").append(method).append("`` ").append(rawPath).append("**\n");
         samples.append("```bash\n");
         samples.append("curl -X ").append(method).append(" \"").append(fullUrl).append("\"");
-        samples.append(" \\\n  -H \"accept: application/json\""); // todo extract
+
+        String acceptHeader = extractResponseAcceptHeader(operation);
+        samples.append(" \\\n  -H \"accept: ").append(acceptHeader).append("\"");
 
         if (operation.getRequestBody() != null) {
             if (method.equals("POST") || method.equals("PUT") || method.equals("PATCH")) {
                 String requestBodyExample = extractSampleJson(operation.getRequestBody(), openAPI);
 
-                samples.append(" \\\n  -H \"Content-Type: application/json\"");
-                samples.append(" \\\n  -d '").append(requestBodyExample).append("'");
+                samples.append(" \\\n  -H \"Content-Type: application/json\"")
+                        .append(" \\\n  -d '")
+                        .append(requestBodyExample)
+                        .append("'");
             }
         }
 
@@ -129,6 +134,22 @@ public class OpenApiExampleGeneratorService {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
         return baseUrl;
+    }
+
+    private String extractResponseAcceptHeader(Operation operation) {
+        String acceptHeader = "*/*";
+        if (operation.getResponses() != null) {
+            for (Map.Entry<String, ApiResponse> response : operation.getResponses().entrySet()) {
+                if (response.getKey().startsWith("2") && response.getValue().getContent() != null) {
+                    Set<String> mediaTypes = response.getValue().getContent().keySet();
+                    if (!mediaTypes.isEmpty()) {
+                        acceptHeader = String.join(",", mediaTypes);
+                        break;
+                    }
+                }
+            }
+        }
+        return acceptHeader;
     }
 
     private String extractSampleJson(RequestBody requestBody,
@@ -180,7 +201,7 @@ public class OpenApiExampleGeneratorService {
         String type = schema.getType();
         if (type.equals("boolean")) return true;
         if (type.equals("integer") || type.equals("number")) return 1;
-        if(type.equals("string") && schema.getMaxLength() != null && schema.getMaxLength() == 1) return "c";
+        if (type.equals("string") && schema.getMaxLength() != null && schema.getMaxLength() == 1) return "c";
 
         return "string";
     }
