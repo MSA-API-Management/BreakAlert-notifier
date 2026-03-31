@@ -31,7 +31,9 @@ public class SubscriptionController {
 
     private UserRepository userRepository;
 
-    public SubscriptionController(DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
+    public SubscriptionController(DataChangeRepository dataChangeRepository,
+                                  SubscriptionRepository subscriptionRepository,
+                                  UserRepository userRepository) {
         this.dataChangeRepository = dataChangeRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
@@ -58,7 +60,8 @@ public class SubscriptionController {
     //    TODO rework and add javadoc
     @PostMapping("/processAll")
     @Transactional
-    public ResponseEntity<String> processJson(@RequestBody List<Subscription> subscriptionList, @RequestParam(value = "webUrl") String webUrl) {
+    public ResponseEntity<String> processJson(@RequestBody List<Subscription> subscriptionList,
+                                              @RequestParam(value = "webUrl") String webUrl) {
         System.out.println("SUBSCRIPTIONS - Processing Subscription Objects with webUrl: " + webUrl);
 
         List<AppUser> allUsers = userRepository.findAll();
@@ -67,14 +70,14 @@ public class SubscriptionController {
 
         for (AppUser user : allUsers) {
 
-            if(webUrl.equals(user.getToken())){
+            if (webUrl.equals(user.getToken())) {
                 // User exists already and can be a Client only or a Notifier WebApp User with Client functionality
                 userExists = true;
                 entityManager.persist(user);
                 Set<Subscription> allPrevSubscriptions = user.getSubscriptions();
 
                 // Only delete subscriptions when User is only a Client from GitLab (because a WebApp user can also be Client (who can subscribe to something without Client functionality))
-                if(user.getEmail()==null || user.getName()==null || user.getPassword()==null) {
+                if (user.getEmail() == null || user.getName() == null || user.getPassword() == null) {
                     removeSubscriptions(user, allPrevSubscriptions, subscriptionList);
                 }
 
@@ -90,7 +93,7 @@ public class SubscriptionController {
             }
         }
 
-        if(!userExists){
+        if (!userExists) {
             System.out.println("SUBSCRIPTIONS - User does not exist in DB. So user gets created without name, password and email.");
             createNewClientUser(webUrl, subscriptionList);
         }
@@ -103,7 +106,7 @@ public class SubscriptionController {
     public ResponseEntity<String> addNewSubscription(@RequestBody Subscription subscription) {
         System.out.println("NOTIFICATION - Trying to add new subscription");
 
-        if(subscription == null || subscription.getAddress() == null || subscription.getBranch() == null || subscription.getSubName() == null) {
+        if (subscription == null || subscription.getAddress() == null || subscription.getBranch() == null || subscription.getSubName() == null) {
             System.out.println("NOTIFICATION - Subscription address, branch and name are required");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Subscription address, branch and name are required");
         }
@@ -113,37 +116,40 @@ public class SubscriptionController {
 
         Optional<Subscription> existing = subscriptionRepository.findByAddressAndBranch(cleanedAddress, cleanedBranch);
 
-            if(existing.isPresent()) {
-                System.out.println("NOTIFICATION - Subscription already exists with this address and branch: " + subscription.getAddress());
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Subscription already exists with this address and branch");
-            }
+        if (existing.isPresent()) {
+            System.out.println("NOTIFICATION - Subscription already exists with this address and branch: " + subscription.getAddress());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Subscription already exists with this address and branch");
+        }
 
-            subscription.setId(null);
-            subscription.setAddress(cleanedAddress);
-            subscription.setBranch(cleanedBranch);
-            subscriptionRepository.save(subscription);
+        subscription.setId(null);
+        subscription.setAddress(cleanedAddress);
+        subscription.setBranch(cleanedBranch);
+        subscriptionRepository.save(subscription);
 
         System.out.println("NOTIFICATION - Subscription successfully added with address " + subscription.getAddress());
-            return ResponseEntity.status(HttpStatus.CREATED).body("Subscription successfully added");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Subscription successfully added");
     }
 
 
-    private void setSubscription(Subscription newSubscription, AppUser user){
+    private void setSubscription(Subscription newSubscription,
+                                 AppUser user) {
         Optional<Subscription> subscription = subscriptionRepository.findByAddressAndBranch(newSubscription.getAddress(), newSubscription.getBranch());
-        if(!subscription.isPresent()){
+        if (!subscription.isPresent()) {
             System.out.println("SUBSCRIPTIONS -" + newSubscription.getSubName() + " does not exist in DB already. So it gets created.");
             subscriptionRepository.save(newSubscription);
-            System.out.println("SUBSCRIPTIONS - Created " + newSubscription.getSubName() + " " +newSubscription.getId() + " successfully.");
+            System.out.println("SUBSCRIPTIONS - Created " + newSubscription.getSubName() + " " + newSubscription.getId() + " successfully.");
             user.getSubscriptions().add(newSubscription);
             System.out.println("SUBSCRIPTIONS - Created a connection from the user to the subscription.");
-        }else{
+        } else {
             System.out.println("SUBSCRIPTIONS - " + newSubscription.getSubName() + " " + subscription.get().getId() + " already exists in DB with name " + subscription.get().getSubName() + " and ID " + subscription.get().getId());
             user.getSubscriptions().add(subscription.get());
             System.out.println("SUBSCRIPTIONS - Created a connection from the user to the subscription.");
         }
     }
 
-    private void removeSubscriptions(AppUser user, Set<Subscription> allPrevSubscriptions, List<Subscription> subscriptionList){
+    private void removeSubscriptions(AppUser user,
+                                     Set<Subscription> allPrevSubscriptions,
+                                     List<Subscription> subscriptionList) {
         for (Subscription sub : allPrevSubscriptions) {
             System.out.println("SUBSCRIPTIONS - SUB ID: " + sub.getId());
         }
@@ -152,14 +158,15 @@ public class SubscriptionController {
                 subscriptionList.stream()
                         .noneMatch(newSub ->
                                 (newSub.getAddress() != null && newSub.getBranch() != null) &&
-                                newSub.getAddress().equals(prevSub.getAddress()) &&
+                                        newSub.getAddress().equals(prevSub.getAddress()) &&
                                         newSub.getBranch().equals(prevSub.getBranch())));
         for (Subscription sub : allPrevSubscriptions) {
             System.out.println("SUBSCRIPTIONS - SUB ID: " + sub.getId());
         }
     }
 
-    private void createNewClientUser(String webUrl, List<Subscription> subscriptionList){
+    private void createNewClientUser(String webUrl,
+                                     List<Subscription> subscriptionList) {
         AppUser user = new AppUser();
         user.setToken(webUrl);
         entityManager.persist(user);
@@ -172,22 +179,24 @@ public class SubscriptionController {
         }
     }
 
-    private void matchSubscriptions(AppUser user, Set<Subscription> allPrevSubscriptions, Subscription newSubscription){
+    private void matchSubscriptions(AppUser user,
+                                    Set<Subscription> allPrevSubscriptions,
+                                    Subscription newSubscription) {
         boolean exists = false;
 
-        System.out.println("SUBSCRIPTIONS - Received Subscription: " + newSubscription.getSubName() + " - " + newSubscription.getBranch() + " - " +newSubscription.getAddress() + " --");
+        System.out.println("SUBSCRIPTIONS - Received Subscription: " + newSubscription.getSubName() + " - " + newSubscription.getBranch() + " - " + newSubscription.getAddress() + " --");
 
         for (Subscription prevSub : allPrevSubscriptions) {
-            if(prevSub.getAddress() != null && prevSub.getBranch() != null) {
+            if (prevSub.getAddress() != null && prevSub.getBranch() != null) {
                 if (prevSub.getAddress().equals(newSubscription.getAddress()) && prevSub.getBranch().equals(newSubscription.getBranch())) {
-                    System.out.println("SUBSCRIPTIONS - This subscription already exists for user "+ user.getName() +" with address: " + newSubscription.getAddress() + ", branch: " + newSubscription.getBranch() + " under the name '" + prevSub.getSubName() + "' " +  prevSub.getId());
+                    System.out.println("SUBSCRIPTIONS - This subscription already exists for user " + user.getName() + " with address: " + newSubscription.getAddress() + ", branch: " + newSubscription.getBranch() + " under the name '" + prevSub.getSubName() + "' " + prevSub.getId());
                     exists = true;
                     break;
                 }
             }
         }
 
-        if(!exists){
+        if (!exists) {
             System.out.println("SUBSCRIPTIONS - User has no subscription to it up to now");
             setSubscription(newSubscription, user);
         }
