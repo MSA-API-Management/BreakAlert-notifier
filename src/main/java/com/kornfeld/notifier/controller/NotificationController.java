@@ -93,6 +93,7 @@ public class NotificationController {
             @RequestParam(value = "branch") String branch,
             Model model
     ) {
+        System.out.println("NOTIFICATION - Received request for address " + address + " branch " + branch);
         Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
 
         if (desiredSub.isPresent()) {
