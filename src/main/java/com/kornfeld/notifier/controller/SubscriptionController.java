@@ -8,6 +8,7 @@ import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -54,6 +55,7 @@ public class SubscriptionController {
 
     // To test in windows, call with:
     // ...\Projekt\notifier> curl -X POST -H "Content-Type: application/json" -d "[{\"subName\": \"Subscription1\", \"address\": \"http.com\", \"branch\": \"main\"}, {\"subName\": \"Subscription2\", \"address\": \"http.test.com\", \"branch\": \"main\"}]" http://localhost:8080/subscriptions/processAll?webUrl=https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9
+    //    TODO rework and add javadoc
     @PostMapping("/processAll")
     @Transactional
     public ResponseEntity<String> processJson(@RequestBody List<Subscription> subscriptionList, @RequestParam(value = "webUrl") String webUrl) {
@@ -96,7 +98,34 @@ public class SubscriptionController {
         return ResponseEntity.ok("JSON-Data processed");
     }
 
+    @PostMapping()
+    @Transactional
+    public ResponseEntity<String> addNewSubscription(@RequestBody Subscription subscription) {
+        System.out.println("NOTIFICATION - Trying to add new subscription");
 
+        if(subscription == null || subscription.getAddress() == null || subscription.getBranch() == null || subscription.getSubName() == null) {
+            System.out.println("NOTIFICATION - Subscription address, branch and name are required");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Subscription address, branch and name are required");
+        }
+
+        String cleanedAddress = subscription.getAddress().trim();
+        String cleanedBranch = subscription.getBranch().trim();
+
+        Optional<Subscription> existing = subscriptionRepository.findByAddressAndBranch(cleanedAddress, cleanedBranch);
+
+            if(existing.isPresent()) {
+                System.out.println("NOTIFICATION - Subscription already exists with this address and branch: " + subscription.getAddress());
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Subscription already exists with this address and branch");
+            }
+
+            subscription.setId(null);
+            subscription.setAddress(cleanedAddress);
+            subscription.setBranch(cleanedBranch);
+            subscriptionRepository.save(subscription);
+
+        System.out.println("NOTIFICATION - Subscription successfully added with address " + subscription.getAddress());
+            return ResponseEntity.status(HttpStatus.CREATED).body("Subscription successfully added");
+    }
 
 
     private void setSubscription(Subscription newSubscription, AppUser user){
