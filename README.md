@@ -38,4 +38,6 @@ To successfully launch the project the following environment variables need to b
 
   Enter the generated API password for your Gmail-Account
 
-  
+  - GPT_API_KEY
+
+  OpenAI API key to generate natural language change summaries
