@@ -199,7 +199,6 @@ public class OpenApiExampleGeneratorService {
         if (exampleObj == null) return "{}";
 
         try {
-            if (exampleObj instanceof String) return (String) exampleObj;
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(exampleObj);
         } catch (Exception e) {
             System.out.println("NOTIFICATION - Error occurred while creating API usage example: " + e.getMessage());
