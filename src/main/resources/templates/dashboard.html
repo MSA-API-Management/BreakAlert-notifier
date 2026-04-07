@@ -48,12 +48,18 @@
                 <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}"
                     class="data-changes">
                     <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
-                        <span th:text="${dataChanges.title}" id="dataChangeText"></span>
-                        <span th:text="'('+${#temporals.format(dataChanges.timestamp, 'dd.MM.yyyy HH:mm')}+')'"></span><br>
+                        <div id="dataChangeTitle">
+                            <span th:text="${dataChanges.title}" id="dataChangeText"></span>
+                            <span th:text="'('+${#temporals.format(dataChanges.timestamp, 'MM/dd/yyyy HH:mm')}+' CET)'"></span><br>
+                        </div>
                         <div th:utext="${dataChanges.content}" id="content"></div>
                         <div th:if="${dataChanges.openApiOld != null && dataChanges.openApiNew != null}">
-                            <button th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''">⬇ Old Spec</button>
-                            <button th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''">⬇ New Spec</button>
+                            <button th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''">⬇
+                                Old Spec
+                            </button>
+                            <button th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''">⬇
+                                New Spec
+                            </button>
                         </div>
                         <br>
                     </li>

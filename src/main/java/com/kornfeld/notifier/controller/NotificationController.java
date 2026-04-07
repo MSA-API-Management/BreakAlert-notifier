@@ -113,7 +113,7 @@ public class NotificationController {
                     "### Summary\n" + gptResponse + "\n\n" +
                             "---\n" + cleanDetailedChanges + "\n\n" +
                             "---\n" +
-                            "**API Examples (new version):**\n" +
+                            "**API Examples (new version):**\n\n" +
                             apiUsageExamples + "\n\n" +
                             "---\n" +
                             "**Subscription Details:**\n" +
