@@ -19,7 +19,7 @@ import java.util.Set;
 
 @Service
 public class OpenApiExampleGeneratorService {
-    private static final int SAMPLE_LIMIT = 5;
+    private static final int SAMPLE_LIMIT = -1; // usage example limitation. -1 for no limitation
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
@@ -53,7 +53,7 @@ public class OpenApiExampleGeneratorService {
 
             int count = 0;
             for (Map.Entry<String, PathItem> entry : openAPI.getPaths().entrySet()) {
-                if (count >= SAMPLE_LIMIT) break;
+                if (SAMPLE_LIMIT != -1 && count >= SAMPLE_LIMIT) break;
 
                 String path = entry.getKey();
                 if (!path.startsWith("/")) path = "/" + path;
