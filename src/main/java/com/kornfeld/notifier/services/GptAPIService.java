@@ -36,7 +36,7 @@ public class GptAPIService {
 
     private static final String DESCRIPTION = "You are an assistant which analyzes the changes from APIs over time written in markdown. " +
             "Describe the most important/meaningful changes as briefly as you can. " +
-            "The result should be a general textual overview of the changes. Do not go into detail or make an enumeration. " +
+            "The result should be a general textual overview of the changes including endpoint paths. Do not go into detail or make an enumeration. " +
             "The receiver of your answer is a developer, so there is no need for explanations on 'easy' topics but still keep it simple. " +
             "Make line breaks after sentences for a better structure. But do not make double line breaks.";
 
