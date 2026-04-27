@@ -184,3 +184,30 @@ td.centered, th.centered {
     border-radius: 3px;
 }
 
+.dashboard-new-subscription {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+}
+
+.dashboard-new-subscription > * + * {
+    margin-left: 8px;
+}
+
+.new-subscription-input {
+    height: 15px;
+    width: auto;
+}
+
+.subscription-status {
+    font-weight: bold; margin-bottom: 15px;
+}
+
+#subscriptionError {
+    color: red;
+}
+
+#subscriptionSuccess {
+    color: green;
+}

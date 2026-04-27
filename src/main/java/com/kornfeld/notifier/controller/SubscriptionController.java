@@ -9,15 +9,20 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@RestController
+@Controller
 @RequestMapping("/subscriptions")
 public class SubscriptionController {
 
@@ -101,9 +106,31 @@ public class SubscriptionController {
         return ResponseEntity.ok("JSON-Data processed");
     }
 
-    @PostMapping()
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<String> addNewSubscription(@RequestBody Subscription subscription) {
+    public ResponseEntity<String> addNewSubscriptionJson(@RequestBody Subscription subscription) {
+        return addSubscription(subscription);
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @Transactional
+    public String addNewSubscriptionForm(@ModelAttribute Subscription subscription, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
+        appUser = entityManager.merge(appUser);
+        System.out.println("Notification - User " + appUser.getName() + "(ID=" + appUser.getId()+") wants to add a new subscription.");
+
+        ResponseEntity<String> response = addSubscription(subscription);
+
+        if(response.getStatusCode().equals(HttpStatus.CREATED)) {
+            redirectAttributes.addFlashAttribute("subscriptionSuccess", true);
+        } else {
+            redirectAttributes.addFlashAttribute("subscriptionError", true);
+            redirectAttributes.addFlashAttribute("subscriptionErrorMessage", response.getBody());
+        }
+
+        return "redirect:/dashboard?tab=subscribe";
+    }
+
+    private ResponseEntity<String> addSubscription(Subscription subscription) {
         System.out.println("NOTIFICATION - Trying to add new subscription");
 
         if (subscription == null || subscription.getAddress() == null || subscription.getBranch() == null || subscription.getSubName() == null) {

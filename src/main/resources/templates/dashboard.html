@@ -50,7 +50,8 @@
                     <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}">
                         <div id="dataChangeTitle">
                             <span th:text="${dataChanges.title}" id="dataChangeText"></span>
-                            <span th:text="'('+${#temporals.format(dataChanges.timestamp, 'MM/dd/yyyy HH:mm')}+' CET)'"></span><br>
+                            <span
+                                th:text="'('+${#temporals.format(dataChanges.timestamp, 'MM/dd/yyyy HH:mm')}+' CET)'"></span><br>
                         </div>
                         <div th:utext="${dataChanges.content}" id="content"></div>
                         <div th:if="${dataChanges.openApiOld != null && dataChanges.openApiNew != null}">
@@ -73,11 +74,25 @@
     <div class="dashboard-container">
         <h2>Subscriptions</h2>
         <p>You can find all repos you can subscribe to here.</p>
-        <div th:if="${subscriptionSuccess}">
-            Successfully subscribed!
+        <div class="dashboard-new-subscription">
+            <p>Add subscription:</p>
+            <form th:action="@{/subscriptions}" method="post">
+                <input required name="subName" type="text" class="new-subscription-input"
+                       placeholder="Enter Subscription Name">
+                <input required name="address" type="text" class="new-subscription-input"
+                       placeholder="Enter Subscription Address">
+                <input required name="branch" type="text" class="new-subscription-input"
+                       placeholder="Enter Analysis Branch">
+                <button type="submit">+</button>
+            </form>
         </div>
-        <div th:if="${subscriptionError}">
-            Subscribing was not successful!
+        <div th:if="${subscriptionSuccess}" class="subscription-status" id="subscriptionSuccess">
+            <span>Subscription successfully added!</span>
+        </div>
+        <div th:if="${subscriptionError}" class="subscription-status" id="subscriptionError">
+            <strong>Error:</strong>
+            <span
+                th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>
         </div>
         <table>
             <thead>
@@ -128,6 +143,16 @@
 </div>
 
 <script type="text/javascript" th:src="@{/js/dashboard.js}"></script>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get('tab') === 'subscribe') {
+        showTab('subscribe');
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+</script>
 
 </body>
 </html>
