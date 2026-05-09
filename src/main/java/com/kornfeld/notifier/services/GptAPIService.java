@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -54,20 +56,27 @@ public class GptAPIService {
         RequestEntity<String> requestEntity = new RequestEntity<>(jsonBody, headers, HttpMethod.POST, null);
 
         restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.exchange(OPENAI_API_URL, HttpMethod.POST, requestEntity, String.class);
 
-        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(OPENAI_API_URL, HttpMethod.POST, requestEntity, String.class);
+
             ObjectMapper objectMapperResponse = new ObjectMapper();
-            try {
-                JsonNode jsonResponse = objectMapperResponse.readTree(responseEntity.getBody());
-                JsonNode choicesNode = jsonResponse.path("choices").path(0);
-                return choicesNode.path("message").path("content").asText();
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                return "Error processing API response";
-            }
-        } else {
-            return "Error communicating with GPT-3.5 API";
+
+            JsonNode jsonResponse = objectMapperResponse.readTree(responseEntity.getBody());
+            JsonNode choicesNode = jsonResponse.path("choices").path(0);
+            return choicesNode.path("message").path("content").asText();
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            System.err.println("Quota/Rate limit exceeded: " + e.getResponseBodyAsString());
+            return "API quota or rate limit exceeded.";
+        } catch (HttpClientErrorException e) {
+            System.err.println("OpenAI API client error (" + e.getStatusCode() + ") " + e.getResponseBodyAsString());
+            return "Error communicating with OpenAI API.";
+        } catch (JsonProcessingException e) {
+            System.err.println(e.getMessage());
+            return "Error processing API response.";
+        } catch (RestClientException e) {
+            System.err.println(e.getMessage());
+            return "Error connecting to OpenAI API.";
         }
     }
 
