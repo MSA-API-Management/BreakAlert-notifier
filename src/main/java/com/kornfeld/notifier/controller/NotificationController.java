@@ -100,9 +100,8 @@ public class NotificationController {
             System.out.println("NOTIFICATION - Received a request successfully");
             System.out.println("NOTIFICATION - Markdown File: " + markdownContent);
 
-//            String gptResponse = gptApiService.generateResponse(markdownContent);
-            String gptResponse = "Currently no summary";
-            System.out.println("NOTIFICATION - Generated response:" + gptResponse);
+            String gptResponse = gptApiService.generateResponse(markdownContent);
+            System.out.println("NOTIFICATION - Generated response: " + gptResponse);
 
             Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
             String apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
