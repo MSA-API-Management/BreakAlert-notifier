@@ -98,7 +98,7 @@ public class OpenApiExampleGeneratorService {
             Set<String> targetEndpoints,
             OpenAPI openAPI
     ) {
-        if (operation == null || count >= SAMPLE_LIMIT) return count;
+        if (operation == null) return count;
 
         String endpointKey = method + " " + rawPath;
         if (!targetEndpoints.contains(endpointKey)) return count;
