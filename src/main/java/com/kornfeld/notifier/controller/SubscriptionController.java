@@ -8,15 +8,21 @@ import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@RestController
+@Controller
 @RequestMapping("/subscriptions")
 public class SubscriptionController {
 
@@ -30,7 +36,9 @@ public class SubscriptionController {
 
     private UserRepository userRepository;
 
-    public SubscriptionController(DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, UserRepository userRepository) {
+    public SubscriptionController(DataChangeRepository dataChangeRepository,
+                                  SubscriptionRepository subscriptionRepository,
+                                  UserRepository userRepository) {
         this.dataChangeRepository = dataChangeRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
@@ -54,9 +62,11 @@ public class SubscriptionController {
 
     // To test in windows, call with:
     // ...\Projekt\notifier> curl -X POST -H "Content-Type: application/json" -d "[{\"subName\": \"Subscription1\", \"address\": \"http.com\", \"branch\": \"main\"}, {\"subName\": \"Subscription2\", \"address\": \"http.test.com\", \"branch\": \"main\"}]" http://localhost:8080/subscriptions/processAll?webUrl=https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9
+    //    TODO rework and add javadoc
     @PostMapping("/processAll")
     @Transactional
-    public ResponseEntity<String> processJson(@RequestBody List<Subscription> subscriptionList, @RequestParam(value = "webUrl") String webUrl) {
+    public ResponseEntity<String> processJson(@RequestBody List<Subscription> subscriptionList,
+                                              @RequestParam(value = "webUrl") String webUrl) {
         System.out.println("SUBSCRIPTIONS - Processing Subscription Objects with webUrl: " + webUrl);
 
         List<AppUser> allUsers = userRepository.findAll();
@@ -65,14 +75,14 @@ public class SubscriptionController {
 
         for (AppUser user : allUsers) {
 
-            if(webUrl.equals(user.getToken())){
+            if (webUrl.equals(user.getToken())) {
                 // User exists already and can be a Client only or a Notifier WebApp User with Client functionality
                 userExists = true;
                 entityManager.persist(user);
                 Set<Subscription> allPrevSubscriptions = user.getSubscriptions();
 
                 // Only delete subscriptions when User is only a Client from GitLab (because a WebApp user can also be Client (who can subscribe to something without Client functionality))
-                if(user.getEmail()==null || user.getName()==null || user.getPassword()==null) {
+                if (user.getEmail() == null || user.getName() == null || user.getPassword() == null) {
                     removeSubscriptions(user, allPrevSubscriptions, subscriptionList);
                 }
 
@@ -88,7 +98,7 @@ public class SubscriptionController {
             }
         }
 
-        if(!userExists){
+        if (!userExists) {
             System.out.println("SUBSCRIPTIONS - User does not exist in DB. So user gets created without name, password and email.");
             createNewClientUser(webUrl, subscriptionList);
         }
@@ -96,25 +106,77 @@ public class SubscriptionController {
         return ResponseEntity.ok("JSON-Data processed");
     }
 
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional
+    public ResponseEntity<String> addNewSubscriptionJson(@RequestBody Subscription subscription) {
+        return addSubscription(subscription);
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @Transactional
+    public String addNewSubscriptionForm(@ModelAttribute Subscription subscription, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
+        appUser = entityManager.merge(appUser);
+        System.out.println("Notification - User " + appUser.getName() + "(ID=" + appUser.getId()+") wants to add a new subscription.");
+
+        ResponseEntity<String> response = addSubscription(subscription);
+
+        if(response.getStatusCode().equals(HttpStatus.CREATED)) {
+            redirectAttributes.addFlashAttribute("subscriptionSuccess", true);
+        } else {
+            redirectAttributes.addFlashAttribute("subscriptionError", true);
+            redirectAttributes.addFlashAttribute("subscriptionErrorMessage", response.getBody());
+        }
+
+        return "redirect:/dashboard?tab=subscribe";
+    }
+
+    private ResponseEntity<String> addSubscription(Subscription subscription) {
+        System.out.println("NOTIFICATION - Trying to add new subscription");
+
+        if (subscription == null || subscription.getAddress() == null || subscription.getBranch() == null || subscription.getSubName() == null) {
+            System.out.println("NOTIFICATION - Subscription address, branch and name are required");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Subscription address, branch and name are required");
+        }
+
+        String cleanedAddress = subscription.getAddress().trim();
+        String cleanedBranch = subscription.getBranch().trim();
+
+        Optional<Subscription> existing = subscriptionRepository.findByAddressAndBranch(cleanedAddress, cleanedBranch);
+
+        if (existing.isPresent()) {
+            System.out.println("NOTIFICATION - Subscription already exists with this address and branch: " + subscription.getAddress());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Subscription already exists with this address and branch");
+        }
+
+        subscription.setId(null);
+        subscription.setAddress(cleanedAddress);
+        subscription.setBranch(cleanedBranch);
+        subscriptionRepository.save(subscription);
+
+        System.out.println("NOTIFICATION - Subscription successfully added with address " + subscription.getAddress());
+        return ResponseEntity.status(HttpStatus.CREATED).body("Subscription successfully added");
+    }
 
 
-
-    private void setSubscription(Subscription newSubscription, AppUser user){
+    private void setSubscription(Subscription newSubscription,
+                                 AppUser user) {
         Optional<Subscription> subscription = subscriptionRepository.findByAddressAndBranch(newSubscription.getAddress(), newSubscription.getBranch());
-        if(!subscription.isPresent()){
+        if (!subscription.isPresent()) {
             System.out.println("SUBSCRIPTIONS -" + newSubscription.getSubName() + " does not exist in DB already. So it gets created.");
             subscriptionRepository.save(newSubscription);
-            System.out.println("SUBSCRIPTIONS - Created " + newSubscription.getSubName() + " " +newSubscription.getId() + " successfully.");
+            System.out.println("SUBSCRIPTIONS - Created " + newSubscription.getSubName() + " " + newSubscription.getId() + " successfully.");
             user.getSubscriptions().add(newSubscription);
             System.out.println("SUBSCRIPTIONS - Created a connection from the user to the subscription.");
-        }else{
+        } else {
             System.out.println("SUBSCRIPTIONS - " + newSubscription.getSubName() + " " + subscription.get().getId() + " already exists in DB with name " + subscription.get().getSubName() + " and ID " + subscription.get().getId());
             user.getSubscriptions().add(subscription.get());
             System.out.println("SUBSCRIPTIONS - Created a connection from the user to the subscription.");
         }
     }
 
-    private void removeSubscriptions(AppUser user, Set<Subscription> allPrevSubscriptions, List<Subscription> subscriptionList){
+    private void removeSubscriptions(AppUser user,
+                                     Set<Subscription> allPrevSubscriptions,
+                                     List<Subscription> subscriptionList) {
         for (Subscription sub : allPrevSubscriptions) {
             System.out.println("SUBSCRIPTIONS - SUB ID: " + sub.getId());
         }
@@ -123,14 +185,15 @@ public class SubscriptionController {
                 subscriptionList.stream()
                         .noneMatch(newSub ->
                                 (newSub.getAddress() != null && newSub.getBranch() != null) &&
-                                newSub.getAddress().equals(prevSub.getAddress()) &&
+                                        newSub.getAddress().equals(prevSub.getAddress()) &&
                                         newSub.getBranch().equals(prevSub.getBranch())));
         for (Subscription sub : allPrevSubscriptions) {
             System.out.println("SUBSCRIPTIONS - SUB ID: " + sub.getId());
         }
     }
 
-    private void createNewClientUser(String webUrl, List<Subscription> subscriptionList){
+    private void createNewClientUser(String webUrl,
+                                     List<Subscription> subscriptionList) {
         AppUser user = new AppUser();
         user.setToken(webUrl);
         entityManager.persist(user);
@@ -143,22 +206,24 @@ public class SubscriptionController {
         }
     }
 
-    private void matchSubscriptions(AppUser user, Set<Subscription> allPrevSubscriptions, Subscription newSubscription){
+    private void matchSubscriptions(AppUser user,
+                                    Set<Subscription> allPrevSubscriptions,
+                                    Subscription newSubscription) {
         boolean exists = false;
 
-        System.out.println("SUBSCRIPTIONS - Received Subscription: " + newSubscription.getSubName() + " - " + newSubscription.getBranch() + " - " +newSubscription.getAddress() + " --");
+        System.out.println("SUBSCRIPTIONS - Received Subscription: " + newSubscription.getSubName() + " - " + newSubscription.getBranch() + " - " + newSubscription.getAddress() + " --");
 
         for (Subscription prevSub : allPrevSubscriptions) {
-            if(prevSub.getAddress() != null && prevSub.getBranch() != null) {
+            if (prevSub.getAddress() != null && prevSub.getBranch() != null) {
                 if (prevSub.getAddress().equals(newSubscription.getAddress()) && prevSub.getBranch().equals(newSubscription.getBranch())) {
-                    System.out.println("SUBSCRIPTIONS - This subscription already exists for user "+ user.getName() +" with address: " + newSubscription.getAddress() + ", branch: " + newSubscription.getBranch() + " under the name '" + prevSub.getSubName() + "' " +  prevSub.getId());
+                    System.out.println("SUBSCRIPTIONS - This subscription already exists for user " + user.getName() + " with address: " + newSubscription.getAddress() + ", branch: " + newSubscription.getBranch() + " under the name '" + prevSub.getSubName() + "' " + prevSub.getId());
                     exists = true;
                     break;
                 }
             }
         }
 
-        if(!exists){
+        if (!exists) {
             System.out.println("SUBSCRIPTIONS - User has no subscription to it up to now");
             setSubscription(newSubscription, user);
         }

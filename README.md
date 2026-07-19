@@ -1,5 +1,5 @@
-# Ndiff-NotifierV2
-This is the second version of the Ndiff-Notifier. The project is written as a Spring Boot Application. API-Changes are analyzed by ChatGPT.
+# BreakAlert
+This is the third version of the Ndiff-Notifier. The project is written as a Spring Boot Application. API-Changes are analyzed by the OpenAI API model gpt-5-mini.
 
 ## Usage
 To successfully launch the project the following environment variables need to be set beforehand:
@@ -38,4 +38,6 @@ To successfully launch the project the following environment variables need to b
 
   Enter the generated API password for your Gmail-Account
 
-  
+  - GPT_API_KEY
+
+  OpenAI API key to generate natural language change summaries

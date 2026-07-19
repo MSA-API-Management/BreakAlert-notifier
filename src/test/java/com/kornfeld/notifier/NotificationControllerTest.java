@@ -8,7 +8,7 @@ import com.kornfeld.notifier.repositories.DataChangeRepository;
 import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.EmailSender;
-import com.kornfeld.notifier.services.Gpt35APIService;
+import com.kornfeld.notifier.services.GptAPIService;
 import com.kornfeld.notifier.services.HTMLParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 public class NotificationControllerTest {
     @Mock
-    private Gpt35APIService gpt3ApiService;
+    private GptAPIService gpt3ApiService;
 
     @Mock
     private HTMLParser htmlParser;
@@ -85,12 +85,12 @@ public class NotificationControllerTest {
             return null;
         }).when(dataChangeRepository).save(any(DataChange.class));
 
-        ResponseEntity<String> responseEntity = controller.generateResponse("HTML Content", "testing.com", "main", null);
+        ResponseEntity<String> responseEntity = controller.generateResponse("HTML Content", null, null,"testing.com", "main", null);
 
         verify(subscriptionRepository, times(1)).findByAddressAndBranch("testing.com", "main");
         verify(htmlParser, times(1)).extractChanges("HTML Content");
         verify(gpt3ApiService, times(1)).generateResponse(anyString());
-        verify(emailSender, times(1)).sendEmail("user@test.com", "Change(s) in testname detected", "Overview:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
+        verify(emailSender, times(1)).sendEmail("user@test.com", "Change(s) in testname detected", "Summary:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
         verify(dataChangeRepository, times(1)).save(dataChangeCaptor.capture());
 
         DataChange savedDataChange = dataChangeCaptor.getValue();
@@ -131,7 +131,7 @@ public class NotificationControllerTest {
     @Test
     public void testGenerateResponse_SubscriptionNotFound() throws IOException {
         when(subscriptionRepository.findByAddressAndBranch(anyString(), anyString())).thenReturn(Optional.empty());
-        ResponseEntity<String> responseEntity = controller.generateResponse("<html><body><h1>test</h1></body></html>", "testing.com", "main", null);
+        ResponseEntity<String> responseEntity = controller.generateResponse("<html><body><h1>test</h1></body></html>", null, null,"testing.com", "main", null);
         verify(subscriptionRepository, times(1)).findByAddressAndBranch(anyString(), anyString());
 
         assertEquals("API Change was successfully processed.", responseEntity.getBody());
@@ -150,7 +150,7 @@ public class NotificationControllerTest {
 
         dataChange = new DataChange();
         dataChange.setTitle("Change(s) in testname detected");
-        dataChange.setContent("Overview:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
+        dataChange.setContent("Summary:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
         dataChangeCaptor = ArgumentCaptor.forClass(DataChange.class);
     }
 

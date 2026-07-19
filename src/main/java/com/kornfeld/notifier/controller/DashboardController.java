@@ -8,13 +8,12 @@ import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.JWTService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.apache.coyote.Response;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +22,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Controller
@@ -57,11 +58,11 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     @Transactional
-    public String showDashboard(Model model, @RequestParam("token") String jwtToken) {
-        System.out.println("DASHBOARD - Initializing Dashboard");
+    public String showDashboard(Model model, @AuthenticationPrincipal AppUser appUser) {
+        System.out.println("DASHBOARD - Initializing Dashboard for: " + appUser.getName());
 
-        AppUser appUser = getCurrentUser(jwtToken);
-        entityManager.persist(appUser);
+        appUser = entityManager.merge(appUser);
+
         Set<Subscription> subscriptions = appUser.getSubscriptions();
         model.addAttribute("username", appUser.getName());
 
@@ -69,23 +70,22 @@ public class DashboardController {
         toSubscribe.removeAll(subscriptions);
         model.addAttribute("toSubscribe", toSubscribe);
 
-        if(appUser.getToken()!=null){
-            if(!appUser.getToken().isEmpty()) {
-                model.addAttribute("tokenExists", true);
-            }
+        if(appUser.getToken() != null && !appUser.getToken().isEmpty()){
+            model.addAttribute("tokenExists", true);
         }
 
         Map<Long, List<DataChange>> dataChangesMap = new HashMap<>();
         for (Subscription subscription : subscriptions) {
-            System.out.println("DASHBOARD - Load Subscription ID"+subscription.getId());
+            System.out.println("DASHBOARD - Load Subscription ID" + subscription.getId());
             Set<DataChange> dataChanges = dataChangeRepository.findBySubscriptionId(subscription.getId());
 
-            if(dataChanges!=null) {
+            if(dataChanges != null) {
                 List<DataChange> dataChangeList = new ArrayList<>(dataChanges);
                 dataChangeList.sort((dc1, dc2) -> dc2.getTimestamp().compareTo(dc1.getTimestamp()));
                 dataChangesMap.put(subscription.getId(), dataChangeList);
             }
         }
+
         model.addAttribute("subscriptions", subscriptions);
         model.addAttribute("dataChangesMap", dataChangesMap);
 
@@ -94,32 +94,31 @@ public class DashboardController {
 
     @PostMapping("/subscribe")
     @Transactional
-    public String subscribe(@RequestParam Long subscriptionId, @RequestParam String jwtToken, Model model, RedirectAttributes redirectAttributes) {
+    public String subscribe(@RequestParam Long subscriptionId, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
         Subscription subscription = subscriptionRepository.findById(subscriptionId).orElse(null);
-        AppUser user = getCurrentUser(jwtToken);
-        entityManager.persist(user);
+        appUser = entityManager.merge(appUser);
+        entityManager.persist(appUser);
 
-        System.out.println("DASHBOARD - User " + user.getName() + "(ID=" + user.getId()+") wants to subscribe to subID="+subscriptionId);
+        System.out.println("DASHBOARD - User " + appUser.getName() + "(ID=" + appUser.getId()+") wants to subscribe to subID="+subscriptionId);
 
         if (subscription != null) {
-            user.getSubscriptions().add(subscription);
+            appUser.getSubscriptions().add(subscription);
             model.addAttribute("subscriptionSuccess", true);
         } else {
             model.addAttribute("subscriptionError", true);
         }
 
-        Set<Subscription> subscriptions = user.getSubscriptions();
+        Set<Subscription> subscriptions = appUser.getSubscriptions();
         List<Subscription> toSubscribe = subscriptionRepository.findAll();
         toSubscribe.removeAll(subscriptions);
         model.addAttribute("toSubscribe", toSubscribe);
 
-        redirectAttributes.addAttribute("token", jwtToken);
         return "redirect:/dashboard";
     }
 
     @PostMapping("/saveToken")
     @Transactional
-    public String saveToken(@RequestParam String tokenLink, @RequestParam String jwtToken, RedirectAttributes redirectAttributes, Model model) {
+    public String saveToken(@RequestParam String tokenLink,@AuthenticationPrincipal AppUser appUser, RedirectAttributes redirectAttributes, Model model) {
 
         // For testing: https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9
 
@@ -152,51 +151,84 @@ public class DashboardController {
         }
 
         if(gitLabAvailable){
-            AppUser user = getCurrentUser(jwtToken);
-            entityManager.persist(user);
-            user.setToken(tokenLink);
-            userRepository.save(user);
+            appUser = entityManager.merge(appUser);
+            entityManager.persist(appUser);
+            appUser.setToken(tokenLink);
+            userRepository.save(appUser);
         }
         model.addAttribute("urlFalse", false);
         redirectAttributes.addAttribute("gitLabAvailable", gitLabAvailable);
-        redirectAttributes.addAttribute("token", jwtToken);
         return "redirect:/clientConfirmation";
     }
 
     @GetMapping("/clientConfirmation")
-    public String clientConfirmation(Model model, @RequestParam("token") String jwtToken, @RequestParam("gitLabAvailable") boolean gitLabAvailable, RedirectAttributes redirectAttributes) {
+    public String clientConfirmation(Model model, @AuthenticationPrincipal AppUser appUser, @RequestParam("gitLabAvailable") boolean gitLabAvailable, RedirectAttributes redirectAttributes) {
         if (gitLabAvailable){
             model.addAttribute("urlCorrect", true);
         } else {
             model.addAttribute("urlWrong", true);
         }
-        redirectAttributes.addAttribute("token", jwtToken);
+
         return "confirmClient";
     }
 
 
     @PostMapping("/dashboard/deleteSubscription/{subscriptionId}")
     @Transactional
-    public String deleteSubscription(@PathVariable Long subscriptionId, @RequestParam String jwtToken, Model model, RedirectAttributes redirectAttributes) {
+    public String deleteSubscription(@PathVariable Long subscriptionId, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
         Optional<Subscription> subscription = subscriptionRepository.findById(subscriptionId);
-        AppUser user = getCurrentUser(jwtToken);
-        entityManager.persist(user);
+        appUser = entityManager.merge(appUser);
+        entityManager.persist(appUser);
 
         if(subscription.isPresent()){
-            user.getSubscriptions().remove(subscription.get());
+            appUser.getSubscriptions().remove(subscription.get());
             System.out.println("DASHBOARD - Successfully deleted the subscription ID " + subscriptionId);
         }else{
             System.out.println("DASHBOARD - Error when deleting the subscription ID " + subscriptionId);
         }
-        redirectAttributes.addAttribute("token", jwtToken);
+
         return "redirect:/dashboard";
     }
 
+    @GetMapping("/download/old/{id}")
+    public ResponseEntity<byte[]> downloadOldOpenApiDesc(@PathVariable Long id) {
+        DataChange change = dataChangeRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String json = change.getOpenApiOld();
+
+        if (json == null){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=old-openapi.json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @GetMapping("/download/new/{id}")
+    public ResponseEntity<byte[]> downloadNewOpenApiDesc(@PathVariable Long id) {
+        DataChange change = dataChangeRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String json = change.getOpenApiNew();
+
+        if (json == null){
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=new-openapi.json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // TODO IDOR RISK (also for other endpoints)
     @PostMapping("/dashboard/changeSubscriptionName/{subscriptionId}")
     @Transactional
-    public String changeSubscriptionName(@PathVariable Long subscriptionId, @RequestParam String newName, @RequestParam String jwtToken, Model model, RedirectAttributes redirectAttributes) {
-        AppUser user = getCurrentUser(jwtToken);
-        if(user!=null) {
+    public String changeSubscriptionName(@PathVariable Long subscriptionId, @RequestParam String newName, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
+        appUser = entityManager.merge(appUser);
+
+        if(appUser!=null) {
             Optional<Subscription> subscriptionOptional = subscriptionRepository.findById(subscriptionId);
 
             if (subscriptionOptional.isPresent()) {
@@ -208,14 +240,8 @@ public class DashboardController {
                 System.out.println("DASHBOARD - Error when changing the name of the subscription ID " + subscriptionId);
             }
         }
-        redirectAttributes.addAttribute("token", jwtToken);
-        return "redirect:/dashboard";
-    }
 
-    @PostMapping("/logout")
-    public String logout( Model model) {
-        System.out.println("DASHBOARD - Logout");
-        return "index";
+        return "redirect:/dashboard";
     }
 
     private AppUser getCurrentUser(String jwtToken){

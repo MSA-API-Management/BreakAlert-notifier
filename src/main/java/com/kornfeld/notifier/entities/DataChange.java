@@ -11,12 +11,23 @@ public class DataChange {
     private Long id;
 
     private String title;
+
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @Column(columnDefinition = "TEXT")
+    private String openApiOld;
+
+    @Column(columnDefinition = "TEXT")
+    private String openApiNew;
+
+    @Column(columnDefinition = "TEXT")
+    private String changeSummary;
 
     @ManyToOne
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
+
     private LocalDateTime timestamp;
 
     // Getter und Setter
@@ -61,5 +72,28 @@ public class DataChange {
         this.timestamp = timestamp;
     }
 
+    public String getOpenApiOld() {
+        return openApiOld;
+    }
+
+    public void setOpenApiOld(String openApiOld) {
+        this.openApiOld = openApiOld;
+    }
+
+    public String getOpenApiNew() {
+        return openApiNew;
+    }
+
+    public void setOpenApiNew(String openApiNew) {
+        this.openApiNew = openApiNew;
+    }
+
+    public String getChangeSummary() {
+        return changeSummary;
+    }
+
+    public void setChangeSummary(String changeSummary) {
+        this.changeSummary = changeSummary;
+    }
 }
 

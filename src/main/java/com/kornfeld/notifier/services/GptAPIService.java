@@ -4,23 +4,24 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
-public class Gpt35APIService {
+public class GptAPIService {
     private String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
     @Value("${GPT_API_KEY}")
     private String API_KEY;
-    private static final String MODEL = "gpt-3.5-turbo";
+    private static final String MODEL = "gpt-5-mini-2025-08-07";
     private RestTemplate restTemplate;
 
     public void setRestTemplate(RestTemplate restTemplate) {
@@ -35,20 +36,11 @@ public class Gpt35APIService {
         this.OPENAI_API_URL = OPENAI_API_URL;
     }
 
-    private static final String DESCRIPTION = "You are an assistant which analyzes the changes from APIs over time. " +
-            "Usually you should receive a rather large list of API Changes. " +
-            "Different changes in sections like 'What's New' are divided by ' | '. " +
+    private static final String DESCRIPTION = "You are an assistant which analyzes the changes from APIs over time written in markdown. " +
             "Describe the most important/meaningful changes as briefly as you can. " +
-            "The result should be a general textual overview of the changes. Do not go into detail or make a enumeration. " +
-            "The receiver of your answer is a developer, so there is no need for explanations on 'easy' topics. " +
-            "Make line breaks after sentences for a better structure. But do not make double line breaks. " +
-            // ---------------- Optional ----------------
-            "The result could look something like this: " +
-            "The API now includes a new endpoint for testing with a null parameter. \n" +
-            "The endpoint for testing has been updated to include a new parameter called 'testing'. \n" +
-            "An endpoint labeled '2nd' has been removed. \n" +
-            "An endpoint labeled 'second to last' is now deprecated. \n" +
-            "The endpoint previously labeled 'last' has undergone some changes.";
+            "The result should be a general textual overview of the changes including endpoint paths. Do not go into detail or make an enumeration. " +
+            "The receiver of your answer is a developer, so there is no need for explanations on 'easy' topics but still keep it simple. " +
+            "Make line breaks after sentences for a better structure. But do not make double line breaks.";
 
     public String generateResponse(String prompt) {
         System.out.println("Generating Response soon...");
@@ -64,20 +56,27 @@ public class Gpt35APIService {
         RequestEntity<String> requestEntity = new RequestEntity<>(jsonBody, headers, HttpMethod.POST, null);
 
         restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.exchange(OPENAI_API_URL, HttpMethod.POST, requestEntity, String.class);
 
-        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(OPENAI_API_URL, HttpMethod.POST, requestEntity, String.class);
+
             ObjectMapper objectMapperResponse = new ObjectMapper();
-            try {
-                JsonNode jsonResponse = objectMapperResponse.readTree(responseEntity.getBody());
-                JsonNode choicesNode = jsonResponse.path("choices").path(0);
-                return choicesNode.path("message").path("content").asText();
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                return "Error processing API response";
-            }
-        } else {
-            return "Error communicating with GPT-3.5 API";
+
+            JsonNode jsonResponse = objectMapperResponse.readTree(responseEntity.getBody());
+            JsonNode choicesNode = jsonResponse.path("choices").path(0);
+            return choicesNode.path("message").path("content").asText();
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            System.err.println("Quota/Rate limit exceeded: " + e.getResponseBodyAsString());
+            return "API quota or rate limit exceeded.";
+        } catch (HttpClientErrorException e) {
+            System.err.println("OpenAI API client error (" + e.getStatusCode() + ") " + e.getResponseBodyAsString());
+            return "Error communicating with OpenAI API.";
+        } catch (JsonProcessingException e) {
+            System.err.println(e.getMessage());
+            return "Error processing API response.";
+        } catch (RestClientException e) {
+            System.err.println(e.getMessage());
+            return "Error connecting to OpenAI API.";
         }
     }
 
@@ -100,12 +99,12 @@ public class Gpt35APIService {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", MODEL);
         requestBody.put("messages", messages);
-        requestBody.put("temperature", 0.7);
-        requestBody.put("max_tokens", 1000);
+//        requestBody.put("temperature", 0.7);
+//        requestBody.put("max_tokens", 1000);
         return requestBody;
     }
 
-    private static String convertRequestBodyToJSON(Map<String, Object> requestBody){
+    private static String convertRequestBodyToJSON(Map<String, Object> requestBody) {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonBody;
         try {

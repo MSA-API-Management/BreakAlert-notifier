@@ -1,6 +1,6 @@
 package com.kornfeld.notifier;
 
-import com.kornfeld.notifier.services.Gpt35APIService;
+import com.kornfeld.notifier.services.GptAPIService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -8,14 +8,14 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Gpt35APIServiceTest {
+public class GptAPIServiceTest {
     private static final String prompt = "\nWhat's New:\nGET/Test null \n\nWhat's Deleted:\n\n\nWhat's Deprecated:\n\n\nWhat's Changed:\n";
     private RestTemplate restTemplateMock;
-    private Gpt35APIService gpt3ApiService;
+    private GptAPIService gpt3ApiService;
     @BeforeEach
     public void setUp() {
         restTemplateMock = Mockito.mock(RestTemplate.class);
-        gpt3ApiService = new Gpt35APIService();
+        gpt3ApiService = new GptAPIService();
         gpt3ApiService.setRestTemplate(restTemplateMock);
         gpt3ApiService.setAPI_KEY("");
     }
