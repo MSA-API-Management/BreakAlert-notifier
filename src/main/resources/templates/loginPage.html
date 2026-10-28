@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Login Page</title>
-    <link rel="stylesheet" th:href="@{/css/loginPage.css}"/>
+    <link rel="stylesheet" th:href="@{/css/output.css}"/>
 </head>
-<body>
-<form action="/loginPage" method="post">
-    <h1>Login with registered user credentials</h1>
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required><br>
+<body class="tw-body">
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required><br>
+<form action="/loginPage" method="post" class="tw-card flex flex-col">
+    <h1 class="tw-heading">Login with registered user credentials</h1>
 
-    <input type="submit" value="Login">
+    <div class="w-full mb-4">
+        <label for="username" class="block mb-1 text-gray-700 font-medium text-sm">Username:</label>
+        <input type="text" id="username" name="username" required class="tw-input">
+    </div>
+
+    <div class="w-full mb-6">
+        <label for="password" class="block mb-1 text-gray-700 font-medium text-sm">Password:</label>
+        <input type="password" id="password" name="password" required class="tw-input">
+    </div>
+
+    <button type="submit" class="btn-primary w-full text-center mt-2">Login</button>
 </form>
+
 </body>
 </html>

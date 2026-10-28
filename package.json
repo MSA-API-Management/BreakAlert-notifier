@@ -1,0 +1,25 @@
+{
+  "name": "breakalert-notifier",
+  "version": "1.0.0",
+  "description": "This is the third version of the Ndiff-Notifier. The project is written as a Spring Boot Application. API-Changes are analyzed by the OpenAI API model gpt-5-mini.",
+  "main": "index.js",
+  "scripts": {
+    "watch":  "npx @tailwindcss/cli -i ./src/main/resources/static/css/styles.css -o ./src/main/resources/static/css/output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MSA-API-Management/BreakAlert-notifier.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MSA-API-Management/BreakAlert-notifier/issues"
+  },
+  "homepage": "https://github.com/MSA-API-Management/BreakAlert-notifier#readme",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}
