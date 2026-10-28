@@ -9,7 +9,7 @@ import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
