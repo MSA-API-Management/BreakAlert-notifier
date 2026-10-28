@@ -9,14 +9,15 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function(event) {
             event.stopPropagation();
             event.preventDefault();
-            // Get current subscription
-            const subscriptionItem = button.closest('.subscription-item');
+
+            const subscriptionItem = button.closest('li');
+
             // Extract the corresponding data change class
             const dataChanges = subscriptionItem.querySelector('.data-changes');
             if (dataChanges) {
                 const isVisible = dataChanges.style.display === 'block';
                 dataChanges.style.display = isVisible ? 'none' : 'block';
-                button.textContent = isVisible ? 'Show Data Changes' : 'Hide Data Changes';
+                button.textContent = isVisible ? 'Hide Data Changes' : 'Show Data Changes';
             }
         });
     });
@@ -45,6 +46,10 @@ window.onload = function() {
         storeToken(token);
         // Remove the token parameter from the URL
         window.history.replaceState({}, document.title, "/dashboard");
-        document.getElementById("tokenInput").value = token;
+
+        const tokenInput = document.getElementById("tokenInput");
+        if (tokenInput) {
+            tokenInput.value = token;
+        }
     }
 };
