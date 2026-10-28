@@ -5,23 +5,23 @@
     <title>Login Page</title>
     <link rel="stylesheet" th:href="@{/css/output.css}"/>
 </head>
-<body class="m-0 p-0 font-sans bg-white h-screen flex items-center justify-center px-4">
-<form action="/loginPage" method="post" class="bg-white rounded-lg p-8 shadow-[0_0_10px_rgba(0,0,0,0.1)] w-full max-w-[500px] flex flex-col">
+<body class="tw-body">
+
+<form action="/loginPage" method="post" class="tw-card flex flex-col">
     <h1 class="tw-heading">Login with registered user credentials</h1>
 
     <div class="w-full mb-4">
         <label for="username" class="block mb-1 text-gray-700 font-medium text-sm">Username:</label>
-        <input type="text" id="username" name="username" required
-               class="tw-input">
+        <input type="text" id="username" name="username" required class="tw-input">
     </div>
 
     <div class="w-full mb-6">
         <label for="password" class="block mb-1 text-gray-700 font-medium text-sm">Password:</label>
-        <input type="password" id="password" name="password" required
-               class="tw-input">
+        <input type="password" id="password" name="password" required class="tw-input">
     </div>
 
     <button type="submit" class="btn-primary w-full text-center mt-2">Login</button>
 </form>
+
 </body>
 </html>
