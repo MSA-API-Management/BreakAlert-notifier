@@ -49,9 +49,9 @@ public class AppConfiguration {
     // Not explicitly called, but necessary for setting passwordEncoder and userDetailsService
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService());
         authenticationProvider.setPasswordEncoder(passwordEncoder());
-        authenticationProvider.setUserDetailsService(userDetailsService());
+
         return authenticationProvider;
     }
 }
