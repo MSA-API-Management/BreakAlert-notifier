@@ -547,6 +547,9 @@
     .sm\:w-32 {
       width: calc(var(--spacing) * 32);
     }
+    .sm\:w-auto {
+      width: auto;
+    }
     .sm\:flex-row {
       flex-direction: row;
     }

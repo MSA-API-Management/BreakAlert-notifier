@@ -3,26 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>GitLab Client</title>
-    <link rel="stylesheet" th:href="@{/css/confirmClient.css}"/>
+    <link rel="stylesheet" th:href="@{/css/output.css}"/>
 </head>
-<body>
-<div th:if="${urlCorrect}">
-    <form th:action="@{/dashboard}" method="get">
-        <h1>GitLab Client successfully added!</h1>
-        <h4>You can still change the URL if you want to.</h4>
-        <div>
-            <input type="hidden" name="token">
-            <input type="submit" value="Go Back To Dashboard">
+<body class="tw-body">
+
+<div th:if="${urlCorrect}" class="w-full flex justify-center">
+    <form th:action="@{/dashboard}" method="get" class="tw-card flex flex-col items-center text-center">
+        <h1 class="text-2xl font-bold mb-2 text-green-600">GitLab Client successfully added!</h1>
+        <h4 class="text-gray-700 font-medium mb-6">You can still change the URL if you want to.</h4>
+
+        <div class="w-full">
+            <input type="hidden" name="token" id="tokenInput">
+            <button type="submit" class="btn-primary w-full sm:w-auto">Go Back To Dashboard</button>
         </div>
     </form>
 </div>
-<div th:if="${urlWrong}" name="outerDiv">
-    <form th:action="@{/dashboard}" method="get">
-        <h1>Something went wrong when adding your GitLab Client</h1>
-        <h4>Your entered URL might not be correct. Try again later or enter a different URL.</h4>
-        <div>
-            <input type="hidden" name="token">
-            <input type="submit" value="Go Back To Dashboard">
+
+<div th:if="${urlWrong}" name="outerDiv" class="w-full flex justify-center">
+    <form th:action="@{/dashboard}" method="get" class="tw-card flex flex-col items-center text-center">
+        <h1 class="text-2xl font-bold mb-2 text-red-600">Something went wrong</h1>
+        <h4 class="text-gray-700 font-medium mb-6">Your entered URL might not be correct. Try again later or enter a
+            different URL.</h4>
+
+        <div class="w-full">
+            <input type="hidden" name="token" id="tokenInputError">
+            <button type="submit" class="btn-primary w-full sm:w-auto bg-gray-500 hover:bg-gray-600">Go Back To
+                Dashboard
+            </button>
         </div>
     </form>
 </div>

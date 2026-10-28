@@ -9,21 +9,25 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body class="tw-dashboard-layout">
-<div id="sidebar" class="flex flex-col items-center w-48 bg-white border-r border-gray-200 py-6 shrink-0 shadow-sm z-10">
+<div id="sidebar"
+     class="flex flex-col items-center w-48 bg-white border-r border-gray-200 py-6 shrink-0 shadow-sm z-10">
     <h2 class="text-xl font-bold text-gray-800 mb-8">Menu</h2>
     <button onclick="showTab('dashboard')" class="btn-primary w-32 mb-4 !mt-0">Dashboard</button>
     <button onclick="showTab('subscribe')" class="btn-primary w-32 mb-4 !mt-0">Subscribe</button>
     <button onclick="showTab('client')" class="btn-primary w-32 mb-auto !mt-0">GitLab</button>
 
     <form th:action="@{/logout}" method="post" class="mt-8">
-        <button type="submit" id="logoutButton" onclick="clearToken()" class="btn-primary w-32 bg-gray-500 hover:bg-gray-600 !mt-0">Logout</button>
+        <button type="submit" id="logoutButton" onclick="clearToken()"
+                class="btn-primary w-32 bg-gray-500 hover:bg-gray-600 !mt-0">Logout
+        </button>
     </form>
 </div>
 
 <div class="flex-1 p-8 overflow-y-auto">
     <div id="dashboardTab">
         <div class="tw-dashboard-card">
-            <h2 class="text-2xl text-[#333] font-bold mb-2">Welcome, <span id="greeting" th:text="${username}" class="text-blue-500"></span>!</h2>
+            <h2 class="text-2xl text-[#333] font-bold mb-2">Welcome, <span id="greeting" th:text="${username}"
+                                                                           class="text-blue-500"></span>!</h2>
             <p class="text-gray-600 mb-6">You can find all your subscriptions here.</p>
 
             <ul class="p-0 list-none">
@@ -36,12 +40,15 @@
                     </div>
 
                     <div class="flex flex-wrap gap-4 items-center mb-4">
-                        <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" id="deleteForm" class="inline-block">
+                        <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post"
+                              id="deleteForm" class="inline-block">
                             <input type="hidden" name="jwtToken">
-                            <button type="submit" class="btn-primary bg-red-400 hover:bg-red-500 !mt-0">Unsubscribe</button>
+                            <button type="submit" class="btn-primary bg-red-400 hover:bg-red-500 !mt-0">Unsubscribe
+                            </button>
                         </form>
 
-                        <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post" id="changeNameForm" class="inline-block flex items-center gap-2">
+                        <form th:action="@{'/dashboard/changeSubscriptionName/' + ${subscription.id}}" method="post"
+                              id="changeNameForm" class="inline-block flex items-center gap-2">
                             <label for="newName" class="font-medium">Change name:</label>
                             <input type="hidden" name="jwtToken">
                             <input type="text" id="newName" name="newName" required class="tw-input w-48 !p-1.5">
@@ -51,21 +58,27 @@
 
                     <button class="btn-primary w-[70%] mx-auto block mb-6 toggle-button">Show Data Changes</button>
 
-                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}" class="data-changes list-none p-0">
-                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}" class="border-t border-dotted border-black pt-3 mb-4">
+                    <ul th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id)}"
+                        class="data-changes list-none p-0">
+                        <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}"
+                            class="border-t border-dotted border-black pt-3 mb-4">
 
                             <div id="dataChangeTitle" class="text-xl mb-2">
                                 <span th:text="${dataChanges.title}" id="dataChangeText" class="font-bold"></span>
-                                <span class="text-gray-500 text-sm ml-2" th:text="'('+${#temporals.format(dataChanges.timestamp, 'MM/dd/yyyy HH:mm')}+' CET)'"></span>
+                                <span class="text-gray-500 text-sm ml-2"
+                                      th:text="'('+${#temporals.format(dataChanges.timestamp, 'MM/dd/yyyy HH:mm')}+' CET)'"></span>
                             </div>
 
                             <div th:utext="${dataChanges.content}" id="content" class="markdown-content"></div>
 
-                            <div th:if="${dataChanges.openApiOld != null && dataChanges.openApiNew != null}" class="mt-4 flex gap-3">
-                                <button th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''" class="btn-primary !mt-0 bg-gray-600 hover:bg-gray-700 text-sm">
+                            <div th:if="${dataChanges.openApiOld != null && dataChanges.openApiNew != null}"
+                                 class="mt-4 flex gap-3">
+                                <button th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''"
+                                        class="btn-primary !mt-0 bg-gray-600 hover:bg-gray-700 text-sm">
                                     ⬇ Old Spec
                                 </button>
-                                <button th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''" class="btn-primary !mt-0 bg-green-500 hover:bg-green-600 text-sm">
+                                <button th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''"
+                                        class="btn-primary !mt-0 bg-green-500 hover:bg-green-600 text-sm">
                                     ⬇ New Spec
                                 </button>
                             </div>
@@ -84,10 +97,15 @@
             <div class="flex items-center gap-3 mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
                 <p class="font-medium m-0 whitespace-nowrap">Add subscription:</p>
                 <form th:action="@{/subscriptions}" method="post" class="flex flex-row items-center gap-2 w-full">
-                    <input required name="subName" type="text" class="tw-input flex-1 !p-1.5 text-sm" placeholder="Name">
-                    <input required name="address" type="text" class="tw-input flex-1 !p-1.5 text-sm" placeholder="Address">
-                    <input required name="branch" type="text" class="tw-input flex-1 !p-1.5 text-sm" placeholder="Branch">
-                    <button type="submit" class="btn-primary !mt-0 !py-1.5 px-4 bg-green-500 hover:bg-green-600 font-bold">+</button>
+                    <input required name="subName" type="text" class="tw-input flex-1 !p-1.5 text-sm"
+                           placeholder="Name">
+                    <input required name="address" type="text" class="tw-input flex-1 !p-1.5 text-sm"
+                           placeholder="Address">
+                    <input required name="branch" type="text" class="tw-input flex-1 !p-1.5 text-sm"
+                           placeholder="Branch">
+                    <button type="submit"
+                            class="btn-primary !mt-0 !py-1.5 px-4 bg-green-500 hover:bg-green-600 font-bold">+
+                    </button>
                 </form>
             </div>
 
@@ -97,7 +115,8 @@
 
             <div th:if="${subscriptionError}" class="font-bold mb-4 text-red-600" id="subscriptionError">
                 <strong>Error:</strong>
-                <span th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>
+                <span
+                    th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>
             </div>
 
             <table class="w-full border-collapse border border-gray-300 rounded-md overflow-hidden">
@@ -111,14 +130,22 @@
                 </thead>
                 <tbody>
                 <tr th:each="subscription,iStat : ${toSubscribe}" class="hover:bg-gray-50">
-                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.subName}">Subscription Name</td>
-                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.address}">Subscription Address</td>
-                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.branch}">Subscription Branch</td>
+                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.subName}">Subscription
+                        Name
+                    </td>
+                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.address}">Subscription
+                        Address
+                    </td>
+                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.branch}">Subscription
+                        Branch
+                    </td>
                     <td class="text-center p-2 border border-gray-300 align-middle">
                         <form th:action="@{/subscribe}" method="post" class="m-0">
                             <input type="hidden" name="subscriptionId" th:value="${subscription.id}">
                             <input type="hidden" name="jwtToken">
-                            <button type="submit" class="btn-primary !py-1 text-sm !mt-0 bg-green-500 hover:bg-green-600">Subscribe</button>
+                            <button type="submit"
+                                    class="btn-primary !py-1 text-sm !mt-0 bg-green-500 hover:bg-green-600">Subscribe
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -141,7 +168,8 @@
             </form>
 
             <div th:if="${tokenExists}" class="mt-6 p-4 bg-blue-50 text-blue-800 rounded border border-blue-200">
-                <strong>You have already connected your account with a GitLab Client.</strong> You can still change the connection if you want to.
+                <strong>You have already connected your account with a GitLab Client.</strong> You can still change the
+                connection if you want to.
             </div>
 
             <div th:if="${urlFalse}" class="mt-6 p-4 bg-red-50 text-red-800 rounded border border-red-200">
