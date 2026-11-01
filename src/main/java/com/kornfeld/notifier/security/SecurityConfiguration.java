@@ -33,7 +33,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers(
                                 "/",
-                                "/loginPage",
+                                "/login",
                                 "/register",
                                 "/process_register",
                                 "/css/**",

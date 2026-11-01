@@ -62,12 +62,12 @@ public class LoginController {
         return "index";
     }
 
-    @GetMapping("/loginPage")
+    @GetMapping("/login")
     public String showLoginPage() {
-        return "loginPage";
+        return "login";
     }
 
-    @PostMapping("/loginPage")
+    @PostMapping("/login")
     public String processLogin(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response, Model model) {
         try {
             AppUser authenticatedUser = authenticationService.authenticate(username, password);

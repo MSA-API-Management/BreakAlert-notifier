@@ -94,7 +94,7 @@ public class LoginControllerTest {
     void testShowLoginPage() {
         String returnVal = loginController.showLoginPage();
 
-        assertEquals("loginPage", returnVal);
+        assertEquals("login", returnVal);
     }
 
     @Test
