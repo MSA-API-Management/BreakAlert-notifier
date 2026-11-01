@@ -5,19 +5,25 @@ function showTab(tabName) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.toggle-button').forEach(function(button) {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation();
-            event.preventDefault();
+    document.querySelectorAll('.subscription-card').forEach(function(card) {
+        card.addEventListener('click', function(event) {
+            if (event.target.closest('.delete-btn')) {
+                return;
+            }
 
-            const subscriptionItem = button.closest('li');
-
-            // Extract the corresponding data change class
+            const subscriptionItem = card.closest('li');
             const dataChanges = subscriptionItem.querySelector('.data-changes');
+            const chevron = card.querySelector('.chevron-icon');
+
             if (dataChanges) {
-                const isVisible = dataChanges.style.display === 'block';
-                dataChanges.style.display = isVisible ? 'none' : 'block';
-                button.textContent = isVisible ? 'Hide Data Changes' : 'Show Data Changes';
+                dataChanges.classList.toggle('hidden');
+
+                const isCurrentlyHidden = dataChanges.classList.contains('hidden');
+                dataChanges.style.display = isCurrentlyHidden ? 'none' : 'block';
+            }
+
+            if (chevron) {
+                chevron.classList.toggle('rotate-90');
             }
         });
     });
