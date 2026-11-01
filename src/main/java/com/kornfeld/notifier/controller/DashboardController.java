@@ -86,7 +86,9 @@ public class DashboardController {
             }
         }
 
-        model.addAttribute("subscriptions", subscriptions);
+        List<Subscription> sortedSubscriptions = new ArrayList<>(subscriptions);
+        sortedSubscriptions.sort(Comparator.comparing(Subscription::getSubName, String.CASE_INSENSITIVE_ORDER));
+        model.addAttribute("subscriptions", sortedSubscriptions);
         model.addAttribute("dataChangesMap", dataChangesMap);
 
         return "dashboard";
