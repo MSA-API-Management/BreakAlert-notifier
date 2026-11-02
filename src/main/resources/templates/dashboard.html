@@ -1,258 +1,308 @@
+```
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>AutoGuard Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/output.css}"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+
+        .hide { display: none; }
+
+        .data-changes { transition: all 0.3s ease-in-out; }
+    </style>
 </head>
-<body class="tw-dashboard-layout">
-<div id="sidebar"
-     class="flex flex-col items-center w-48 bg-white border-r border-gray-200 py-6 shrink-0 shadow-sm z-10">
-    <h2 class="text-xl font-bold text-gray-800 mb-8">Menu</h2>
-    <button onclick="showTab('dashboard')" class="btn-primary w-32 mb-4 !mt-0">Dashboard</button>
-    <button onclick="showTab('subscribe')" class="btn-primary w-32 mb-4 !mt-0">Subscribe</button>
-    <button onclick="showTab('client')" class="btn-primary w-32 mb-auto !mt-0">GitLab</button>
+<body class="bg-gray-50 text-gray-800 font-sans flex h-screen overflow-hidden">
 
-    <form th:action="@{/logout}" method="post" class="mt-8">
-        <button type="submit" id="logoutButton" onclick="clearToken()"
-                class="btn-primary w-32 bg-gray-500 hover:bg-gray-600 !mt-0">Logout
+
+
+
+<aside class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 shadow-sm z-20">
+    <div class="h-16 flex items-center px-6 border-b border-gray-100">
+        <h1 class="text-xl font-black text-gray-900 tracking-tight">AutoGuard</h1>
+    </div>
+
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <button onclick="showTab('dashboard')" class="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 hover:text-blue-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            Dashboard
         </button>
-    </form>
-</div>
+        <button onclick="showTab('subscribe')" class="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 hover:text-blue-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Subscribe
+        </button>
+        <button onclick="showTab('client')" class="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 hover:text-blue-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            GitLab Setup
+        </button>
+    </nav>
 
-<div class="flex-1 p-8 overflow-y-auto">
-    <div id="dashboardTab">
-        <div class="tw-dashboard-card">
-            <h2 class="text-2xl text-[#333] font-bold mb-2">Welcome, <span id="greeting" th:text="${username}"
-                                                                           class="text-blue-500"></span>!</h2>
-            <p class="text-gray-600 mb-6">You can find all your subscriptions here.</p>
+    <div class="p-4 border-t border-gray-100">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" onclick="clearToken()" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Logout
+            </button>
+        </form>
+    </div>
+</aside>
 
-            <ul class="p-0 list-none">
-                <li th:each="subscription : ${subscriptions}" class="mb-4">
-                    <div
-                        class="w-full p-4 flex flex-row items-center cursor-pointer border border-gray-100 rounded-xl shadow-lg hover:bg-gray-50 transition-colors subscription-card">
 
-                        <div class="flex flex-row items-center gap-4 w-[70%]">
-                            <svg class="w-10 h-10 shrink-0" xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="93.97 97.52 192.05 184.99">
-                                <defs>
-                                    <style>.cls-2 {
-                                        fill: #fc6d26
-                                    }</style>
-                                </defs>
-                                <g id="LOGO">
-                                    <path
-                                        d="m282.83 170.73-.27-.69-26.14-68.22a6.8 6.8 0 0 0-2.69-3.24 7 7 0 0 0-8 .43 7 7 0 0 0-2.32 3.52l-17.65 54h-71.47l-17.65-54a6.86 6.86 0 0 0-2.32-3.53 7 7 0 0 0-8-.43 6.87 6.87 0 0 0-2.69 3.24L97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91 40.06-30 .1-.08a48.56 48.56 0 0 0 16.08-56.04"
-                                        style="fill:#e24329"/>
-                                    <path
-                                        d="m282.83 170.73-.27-.69a88.3 88.3 0 0 0-35.15 15.8L190 229.25c19.55 14.79 36.57 27.64 36.57 27.64l40.06-30 .1-.08a48.56 48.56 0 0 0 16.1-56.08"
-                                        class="cls-2"/>
-                                    <path
-                                        d="m153.43 256.89 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91S209.55 244 190 229.25c-19.55 14.75-36.57 27.64-36.57 27.64"
-                                        style="fill:#fca326"/>
-                                    <path
-                                        d="M132.58 185.84A88.2 88.2 0 0 0 97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82L190 229.21Z"
-                                        class="cls-2"/>
-                                </g>
+
+
+<main class="flex-1 overflow-y-auto p-6 md:p-10">
+
+
+    <div id="dashboardTab" class="max-w-6xl mx-auto">
+
+        <header class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-1">Welcome, <span th:text="${username}" class="text-blue-600"></span>!</h2>
+            <p class="text-gray-500">Monitor and manage all your active API subscriptions below.</p>
+        </header>
+
+        <ul class="space-y-6 list-none p-0 m-0">
+
+            <li th:each="subscription : ${subscriptions}" class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+
+                <div class="w-full p-5 flex flex-wrap md:flex-nowrap items-center cursor-pointer hover:bg-gray-50 transition-colors subscription-card">
+
+
+                    <div class="flex-1 flex items-center gap-4 min-w-[300px]">
+
+                        <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center shrink-0 border border-orange-100">
+                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="93.97 97.52 192.05 184.99">
+                                <path d="m282.83 170.73-.27-.69-26.14-68.22a6.8 6.8 0 0 0-2.69-3.24 7 7 0 0 0-8 .43 7 7 0 0 0-2.32 3.52l-17.65 54h-71.47l-17.65-54a6.86 6.86 0 0 0-2.32-3.53 7 7 0 0 0-8-.43 6.87 6.87 0 0 0-2.69 3.24L97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91 40.06-30 .1-.08a48.56 48.56 0 0 0 16.08-56.04" style="fill:#e24329"/>
+                                <path d="m282.83 170.73-.27-.69a88.3 88.3 0 0 0-35.15 15.8L190 229.25c19.55 14.79 36.57 27.64 36.57 27.64l40.06-30 .1-.08a48.56 48.56 0 0 0 16.1-56.08" fill="#fc6d26"/>
+                                <path d="m153.43 256.89 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91S209.55 244 190 229.25c-19.55 14.75-36.57 27.64-36.57 27.64" style="fill:#fca326"/>
+                                <path d="M132.58 185.84A88.2 88.2 0 0 0 97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82L190 229.21Z" fill="#fc6d26"/>
                             </svg>
+                        </div>
 
-                            <div class="flex flex-col">
-                                <div class="flex flex-row items-center gap-2">
-                                    <span class="text-2xl font-semibold" th:text="${subscription.subName}"></span>
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-lg font-bold text-gray-900" th:text="${subscription.subName}"></h3>
 
-                                    <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}"
-                                          method="post" class="inline-block m-0">
-                                        <input type="hidden" name="jwtToken">
-                                        <button type="submit"
-                                                class="z-10 relative flex items-center justify-center p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors focus:outline-none translate-y-[1px] delete-btn"
-                                                title="Unsubscribe">
-                                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                 fill="none" stroke="currentColor" stroke-width="2"
-                                                 stroke-linecap="round" stroke-linejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <div class="flex flex-row gap-2 mt-1">
-                                    <span class="text-gray-700" th:text="${subscription.address}"></span>
-                                    <span class="text-gray-700 flex items-center gap-1">
-                                        <svg class="w-4 h-4 text-gray-500 fill-current"
-                                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
-                                            <path
-                                                d="M384 144c0-44.2-35.8-80-80-80s-80 35.8-80 80c0 36.4 24.3 67.1 57.5 76.8-.6 16.1-4.2 28.5-11 36.9-15.4 19.2-49.3 22.4-85.2 25.7-28.2 2.6-57.4 5.4-81.3 16.9v-144c32.5-10.2 56-40.5 56-76.3 0-44.2-35.8-80-80-80S0 35.8 0 80c0 35.8 23.5 66.1 56 76.3v199.3C23.5 365.9 0 396.2 0 432c0 44.2 35.8 80 80 80s80-35.8 80-80c0-34-21.2-63.1-51.2-74.6 3.1-5.2 7.8-9.8 14.9-13.4 16.2-8.2 40.4-10.4 66.1-12.8 42.2-3.9 90-8.4 118.2-43.4 14-17.4 21.1-39.8 21.6-67.9 31.6-10.8 54.4-41.2 54.4-75.9zM80 64c8.8 0 16 7.2 16 16s-7.2 16-16 16-16-7.2-16-16 7.2-16 16-16zm0 384c-8.8 0-16-7.2-16-16s7.2-16 16-16 16 7.2 16 16-7.2 16-16 16zm224-320c8.8 0 16 7.2 16 16s-7.2 16-16 16-16-7.2-16-16 7.2-16 16-16z"/>
-                                        </svg>
+                                <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post" class="m-0">
+                                    <input type="hidden" name="jwtToken">
+                                    <button type="submit" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors" title="Unsubscribe">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                <span th:text="${subscription.address}"></span>
+                                <span class="text-gray-300">|</span>
+                                <span class="flex items-center gap-1 font-mono bg-gray-100 px-1.5 rounded text-gray-600">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                                         <span th:text="${subscription.branch}">main</span>
                                     </span>
-                                </div>
                             </div>
-                        </div>
-
-                        <div class="flex flex-col w-[25%] items-center justify-center text-gray-700">
-                            <th:block th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}"
-                                      th:with="latestChange=${dataChangesMap.get(subscription.id)[0]}">
-
-                                <div class="flex flex-row gap-2">
-                                    <span class="font-medium">Latest:</span>
-                                    <span th:text="${#temporals.format(latestChange.timestamp, 'MM/dd/yyyy HH:mm')}+' CET'"></span>
-                                </div>
-
-                                <div class="flex flex-row gap-2">
-                                    <span>Commit:</span>
-                                    <span th:text="${latestChange.latestCommitShortSha}"></span>
-                                </div>
-                            </th:block>
-
-                            <th:block th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
-                                <span class="text-sm text-gray-500 italic">No changes yet</span>
-                            </th:block>
-                        </div>
-
-                        <div class="flex w-[5%] justify-end items-center text-black">
-                            <svg class="w-6 h-6 chevron-icon transition-transform duration-200"
-                                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
                         </div>
                     </div>
 
-                    <ul class="hidden data-changes list-none p-4 mt-2 bg-white border border-gray-200 rounded-xl shadow-inner">
-                        <th:block
-                            th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
-                            <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}"
-                                class="border-t border-dotted border-gray-400 pt-4 mb-4 first:border-t-0 first:pt-0">
-                                <div id="dataChangeTitle" class="text-xl mb-2">
-                                    <span th:text="${dataChanges.title}" id="dataChangeText" class="font-bold"></span>
-                                    <span class="text-gray-500 text-sm ml-2"
-                                          th:text="'('+${#temporals.format(dataChanges.timestamp, 'MM/dd/yyyy HH:mm')}+' CET)'"></span>
-                                </div>
 
-                                <div th:utext="${dataChanges.content}" id="content" class="markdown-content"></div>
-
-                                <div th:if="${dataChanges.openApiOld != null && dataChanges.openApiNew != null}"
-                                     class="mt-4 flex gap-3">
-                                    <button
-                                        th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''"
-                                        class="btn-primary !mt-0 bg-gray-600 hover:bg-gray-700 text-sm">
-                                        ⬇ Old Spec
-                                    </button>
-                                    <button
-                                        th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''"
-                                        class="btn-primary !mt-0 bg-green-500 hover:bg-green-600 text-sm">
-                                        ⬇ New Spec
-                                    </button>
-                                </div>
-                            </li>
+                    <div class="mt-4 md:mt-0 flex items-center gap-6 text-sm text-gray-500 px-4 border-l border-gray-100 hidden md:flex">
+                        <th:block th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}" th:with="latestChange=${dataChangesMap.get(subscription.id)[0]}">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-0.5">Last Update</p>
+                                <p class="font-medium text-gray-700" th:text="${#temporals.format(latestChange.timestamp, 'MM/dd/yyyy HH:mm')} + ' CET'"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-0.5">Commit</p>
+                                <p class="font-mono text-gray-700 font-medium" th:text="${latestChange.latestCommitShortSha}"></p>
+                            </div>
                         </th:block>
-
-                        <th:block
-                            th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
-                            <li class="tw-info-style !py-1">
-                                There are currently no changes.
-                            </li>
+                        <th:block th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
+                            <div class="text-gray-400 italic">No updates recorded yet.</div>
                         </th:block>
-                    </ul>
-                </li>
-            </ul>
+                    </div>
+
+
+                    <div class="ml-auto md:ml-4 text-gray-400">
+                        <svg class="w-6 h-6 chevron-icon transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+
+                <div class="hidden data-changes border-t border-gray-100 bg-gray-50/50 p-6 md:p-8">
+
+                    <th:block th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
+
+
+                        <div class="relative border-l-2 border-gray-200 ml-4 md:ml-6 py-2">
+
+
+                            <div th:each="dataChange, iterStat : ${dataChangesMap[subscription.id]}" class="relative mb-12 pl-8 md:pl-10 last:mb-0">
+
+
+                                <div class="absolute -left-[9px] top-6 h-4 w-4 rounded-full border-2 border-white shadow-sm"
+                                     th:classappend="${iterStat.first ? 'bg-blue-500' : 'bg-gray-400'}"></div>
+
+
+                                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+
+
+                                    <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center gap-4 bg-white">
+                                        <span class="text-lg font-bold text-gray-800" th:text="${#temporals.format(dataChange.timestamp, 'MM/dd/yyyy HH:mm')} + ' CET'"></span>
+
+                                        <span class="font-mono bg-gray-100 px-2.5 py-1 rounded-md text-gray-600 border border-gray-200 text-xs shadow-sm" th:text="${dataChange.latestCommitShortSha}"></span>
+
+
+                                        <span th:if="${dataChange.backwardIncompatible}" class="flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-2 py-0.5 rounded-md">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                                Breaking
+                                            </span>
+                                    </div>
+
+
+                                    <div class="p-6">
+                                        <div class="markdown-content prose prose-sm max-w-none text-gray-700 overflow-x-auto" th:utext="${dataChange.content}">
+
+                                        </div>
+                                    </div>
+
+
+                                    <div th:if="${dataChange.openApiOld != null && dataChange.openApiNew != null}" class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 justify-end">
+                                        <button th:onclick="'window.location.href=\'/download/old/' + ${dataChange.id} + '\''" class="flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-700 text-sm font-medium py-1.5 px-4 rounded-lg transition-colors border border-gray-300 shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            Old Spec.json
+                                        </button>
+                                        <button th:onclick="'window.location.href=\'/download/new/' + ${dataChange.id} + '\''" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-4 rounded-lg transition-colors border border-blue-700 shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            New Spec.json
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+
+
+                    <th:block th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
+                        <div class="flex flex-col items-center justify-center py-8 text-gray-500 bg-white rounded-xl border border-gray-200 border-dashed">
+                            <svg class="w-10 h-10 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            <p class="text-sm font-medium">No changelogs recorded yet for this branch.</p>
+                        </div>
+                    </th:block>
+
+                </div>
+            </li>
+        </ul>
+    </div>
+
+
+    <div id="subscribeTab" class="hide max-w-6xl mx-auto">
+        <header class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-1">Subscriptions Manager</h2>
+            <p class="text-gray-500">Discover and subscribe to available API repositories.</p>
+        </header>
+
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mb-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Add a Custom Repository</h3>
+            <form th:action="@{/subscriptions}" method="post" class="flex flex-col md:flex-row items-center gap-4">
+                <input required name="subName" type="text" class="w-full md:flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow" placeholder="Project Name">
+                <input required name="address" type="text" class="w-full md:flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow" placeholder="Repository Address URL">
+                <input required name="branch" type="text" class="w-full md:w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow" placeholder="Branch (e.g. main)">
+                <button type="submit" class="w-full md:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add
+                </button>
+            </form>
+
+
+            <div th:if="${subscriptionSuccess}" class="mt-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded-lg flex items-center gap-2 text-sm font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                Subscription successfully added!
+            </div>
+            <div th:if="${subscriptionError}" class="mt-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg flex items-center gap-2 text-sm font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>
+            </div>
+        </div>
+
+
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="font-bold text-gray-800">Available Repositories</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                    <tr class="bg-white border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500">
+                        <th class="p-4 font-semibold">Name</th>
+                        <th class="p-4 font-semibold">Address</th>
+                        <th class="p-4 font-semibold">Branch</th>
+                        <th class="p-4 font-semibold text-right">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+                    <tr th:each="subscription,iStat : ${toSubscribe}" class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-medium text-gray-900" th:text="${subscription.subName}"></td>
+                        <td class="p-4 text-gray-500" th:text="${subscription.address}"></td>
+                        <td class="p-4">
+                            <span class="inline-flex font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-600 text-xs border border-gray-200" th:text="${subscription.branch}"></span>
+                        </td>
+                        <td class="p-4 text-right">
+                            <form th:action="@{/subscribe}" method="post" class="m-0 inline-block">
+                                <input type="hidden" name="subscriptionId" th:value="${subscription.id}">
+                                <input type="hidden" name="jwtToken">
+                                <button type="submit" class="px-4 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-colors shadow-sm text-xs">
+                                    Subscribe
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div id="subscribeTab" class="hide">
-        <div class="tw-dashboard-card">
-            <h2 class="text-2xl text-[#333] font-bold mb-2">Subscriptions</h2>
-            <p class="text-gray-600 mb-6">You can find all repos you can subscribe to here.</p>
 
-            <div class="flex items-center gap-3 mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
-                <p class="font-medium m-0 whitespace-nowrap">Add subscription:</p>
-                <form th:action="@{/subscriptions}" method="post" class="flex flex-row items-center gap-2 w-full">
-                    <input required name="subName" type="text" class="tw-input flex-1 !p-1.5 text-sm"
-                           placeholder="Name">
-                    <input required name="address" type="text" class="tw-input flex-1 !p-1.5 text-sm"
-                           placeholder="Address">
-                    <input required name="branch" type="text" class="tw-input flex-1 !p-1.5 text-sm"
-                           placeholder="Branch">
-                    <button type="submit"
-                            class="btn-primary !mt-0 !py-1.5 px-4 bg-green-500 hover:bg-green-600 font-bold">+
-                    </button>
-                </form>
-            </div>
+    <div id="clientTab" class="hide max-w-3xl mx-auto">
+        <header class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-1">GitLab Integration</h2>
+            <p class="text-gray-500">Connect your account to synchronize API endpoints directly.</p>
+        </header>
 
-            <div th:if="${subscriptionSuccess}" class="font-bold mb-4 text-green-600" id="subscriptionSuccess">
-                <span>Subscription successfully added!</span>
-            </div>
-
-            <div th:if="${subscriptionError}" class="font-bold mb-4 text-red-600" id="subscriptionError">
-                <strong>Error:</strong>
-                <span
-                    th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>
-            </div>
-
-            <table class="w-full border-collapse border border-gray-300 rounded-md overflow-hidden">
-                <thead>
-                <tr class="bg-[#3498db] text-white">
-                    <th class="text-left p-2 border border-gray-300">Name</th>
-                    <th class="text-left p-2 border border-gray-300">Address</th>
-                    <th class="text-left p-2 border border-gray-300">Branch</th>
-                    <th class="text-center p-2 border border-gray-300">Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="subscription,iStat : ${toSubscribe}" class="hover:bg-gray-50">
-                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.subName}">Subscription
-                        Name
-                    </td>
-                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.address}">Subscription
-                        Address
-                    </td>
-                    <td class="text-left p-2 border border-gray-300" th:text="${subscription.branch}">Subscription
-                        Branch
-                    </td>
-                    <td class="text-center p-2 border border-gray-300 align-middle">
-                        <form th:action="@{/subscribe}" method="post" class="m-0">
-                            <input type="hidden" name="subscriptionId" th:value="${subscription.id}">
-                            <input type="hidden" name="jwtToken">
-                            <button type="submit"
-                                    class="btn-primary !py-1 text-sm !mt-0 bg-green-500 hover:bg-green-600">Subscribe
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="clientTab" class="hide">
-        <div class="tw-dashboard-card max-w-2xl mx-auto mt-10">
-            <h2 class="text-2xl text-[#333] font-bold mb-6">Connect your account with a GitLab Client</h2>
-
-            <form th:action="@{/saveToken}" method="post" class="flex flex-col gap-3">
-                <label for="tokenLink" class="font-medium text-gray-700">Enter your GitLab link:</label>
-                <div class="flex gap-2">
-                    <input type="text" id="tokenLink" name="tokenLink" class="tw-input w-full md:w-2/3">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-gray-200 shadow-sm">
+            <form th:action="@{/saveToken}" method="post" class="space-y-4">
+                <label for="tokenLink" class="block font-bold text-gray-800">Enter your GitLab instance URL:</label>
+                <div class="flex flex-col md:flex-row gap-3">
+                    <input type="text" id="tokenLink" name="tokenLink" placeholder="https://gitlab.example.com" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow">
                     <input type="hidden" name="jwtToken">
-                    <button type="submit" class="btn-primary !mt-0">Save</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gray-900 hover:bg-black text-white font-medium rounded-lg transition-colors shadow-sm shrink-0">
+                        Save Connection
+                    </button>
                 </div>
             </form>
 
-            <div th:if="${tokenExists}" class="mt-6 p-4 bg-blue-50 text-blue-800 rounded border border-blue-200">
-                <strong>You have already connected your account with a GitLab Client.</strong> You can still change the
-                connection if you want to.
+            <div th:if="${tokenExists}" class="mt-6 p-4 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 flex items-start gap-3">
+                <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                    <strong class="block mb-1">Account Connected</strong>
+                    <p class="text-sm">You have already connected your account with a GitLab Client. You can update the URL above at any time to change the connection.</p>
+                </div>
             </div>
 
-            <div th:if="${urlFalse}" class="mt-6 p-4 bg-red-50 text-red-800 rounded border border-red-200">
-                The entered URL seems to be not correct or currently not available. Check your URL or enter later.
+            <div th:if="${urlFalse}" class="mt-6 p-4 bg-red-50 text-red-800 rounded-xl border border-red-200 flex items-start gap-3">
+                <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                    <strong class="block mb-1">Connection Failed</strong>
+                    <p class="text-sm">The entered URL seems to be incorrect or currently unreachable. Please check your spelling and try again.</p>
+                </div>
             </div>
         </div>
     </div>
 
-</div>
+</main>
 
 <script type="text/javascript" th:src="@{/js/dashboard.js}"></script>
 <script>
@@ -262,6 +312,15 @@
         const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
     }
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteButtons = document.querySelectorAll('form[action*="deleteSubscription"] button');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        });
+    });
 </script>
 </body>
 </html>
+```
