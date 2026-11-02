@@ -7,7 +7,7 @@ function showTab(tabName) {
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.subscription-card').forEach(function(card) {
         card.addEventListener('click', function(event) {
-            if (event.target.closest('.delete-btn')) {
+            if (event.target.closest('button') || event.target.closest('form')) {
                 return;
             }
 
@@ -17,9 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (dataChanges) {
                 dataChanges.classList.toggle('hidden');
-
-                const isCurrentlyHidden = dataChanges.classList.contains('hidden');
-                dataChanges.style.display = isCurrentlyHidden ? 'none' : 'block';
             }
 
             if (chevron) {

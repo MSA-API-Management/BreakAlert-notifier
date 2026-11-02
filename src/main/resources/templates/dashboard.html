@@ -24,143 +24,171 @@
 </div>
 
 <div class="flex-1 p-8 overflow-y-auto">
-    <div id="dashboardTab">
-        <div class="tw-dashboard-card">
-            <h2 class="text-2xl text-[#333] font-bold mb-2">Welcome, <span id="greeting" th:text="${username}"
-                                                                           class="text-blue-500"></span>!</h2>
-            <p class="text-gray-600 mb-6">You can find all your subscriptions here.</p>
+    <div id="dashboardTab" class="max-w-6xl mx-auto">
+        <header class="mb-8">
+            <h2 class="tw-heading">Welcome, <span th:text="${username}" class="text-blue-600"></span>!</h2>
+            <p class="text-gray-500">Monitor and manage all your active API subscriptions below.</p>
+        </header>
 
-            <ul class="p-0 list-none">
-                <li th:each="subscription : ${subscriptions}" class="mb-4">
-                    <div
-                        class="w-full p-4 flex flex-row items-center cursor-pointer border border-gray-100 rounded-xl shadow-lg hover:bg-gray-50 transition-colors subscription-card">
+        <ul class="space-y-6 list-none p-0 m-0">
+            <li th:each="subscription : ${subscriptions}" class="tw-inner-card">
 
-                        <div class="flex flex-row items-center gap-4 w-[70%]">
-                            <svg class="w-10 h-10 shrink-0" xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="93.97 97.52 192.05 184.99">
-                                <defs>
-                                    <style>.cls-2 {
-                                        fill: #fc6d26
-                                    }</style>
-                                </defs>
-                                <g id="LOGO">
-                                    <path
-                                        d="m282.83 170.73-.27-.69-26.14-68.22a6.8 6.8 0 0 0-2.69-3.24 7 7 0 0 0-8 .43 7 7 0 0 0-2.32 3.52l-17.65 54h-71.47l-17.65-54a6.86 6.86 0 0 0-2.32-3.53 7 7 0 0 0-8-.43 6.87 6.87 0 0 0-2.69 3.24L97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91 40.06-30 .1-.08a48.56 48.56 0 0 0 16.08-56.04"
-                                        style="fill:#e24329"/>
-                                    <path
-                                        d="m282.83 170.73-.27-.69a88.3 88.3 0 0 0-35.15 15.8L190 229.25c19.55 14.79 36.57 27.64 36.57 27.64l40.06-30 .1-.08a48.56 48.56 0 0 0 16.1-56.08"
-                                        class="cls-2"/>
-                                    <path
-                                        d="m153.43 256.89 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91S209.55 244 190 229.25c-19.55 14.75-36.57 27.64-36.57 27.64"
-                                        style="fill:#fca326"/>
-                                    <path
-                                        d="M132.58 185.84A88.2 88.2 0 0 0 97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82L190 229.21Z"
-                                        class="cls-2"/>
-                                </g>
+                <div
+                    class="w-full p-5 flex flex-wrap md:flex-nowrap items-center cursor-pointer hover:bg-gray-50 transition-colors subscription-card">
+                    <div class="flex-1 flex items-center gap-4 min-w-[300px]">
+                        <div
+                            class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center shrink-0 border border-orange-100">
+                            <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="93.97 97.52 192.05 184.99">
+                                <path
+                                    d="m282.83 170.73-.27-.69-26.14-68.22a6.8 6.8 0 0 0-2.69-3.24 7 7 0 0 0-8 .43 7 7 0 0 0-2.32 3.52l-17.65 54h-71.47l-17.65-54a6.86 6.86 0 0 0-2.32-3.53 7 7 0 0 0-8-.43 6.87 6.87 0 0 0-2.69 3.24L97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91 40.06-30 .1-.08a48.56 48.56 0 0 0 16.08-56.04"
+                                    style="fill:#e24329"/>
+                                <path
+                                    d="m282.83 170.73-.27-.69a88.3 88.3 0 0 0-35.15 15.8L190 229.25c19.55 14.79 36.57 27.64 36.57 27.64l40.06-30 .1-.08a48.56 48.56 0 0 0 16.1-56.08"
+                                    fill="#fc6d26"/>
+                                <path
+                                    d="m153.43 256.89 19.7 14.91 12 9.06a8.07 8.07 0 0 0 9.76 0l12-9.06 19.7-14.91S209.55 244 190 229.25c-19.55 14.75-36.57 27.64-36.57 27.64"
+                                    style="fill:#fca326"/>
+                                <path
+                                    d="M132.58 185.84A88.2 88.2 0 0 0 97.44 170l-.26.69a48.54 48.54 0 0 0 16.1 56.1l.09.07.24.17 39.82 29.82L190 229.21Z"
+                                    fill="#fc6d26"/>
                             </svg>
+                        </div>
 
-                            <div class="flex flex-col">
-                                <div class="flex flex-row items-center gap-2">
-                                    <span class="text-2xl font-semibold" th:text="${subscription.subName}"></span>
-
-                                    <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}"
-                                          method="post" class="inline-block m-0">
-                                        <input type="hidden" name="jwtToken">
-                                        <button type="submit"
-                                                class="z-10 relative flex items-center justify-center p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors focus:outline-none translate-y-[1px] delete-btn"
-                                                title="Unsubscribe">
-                                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                 fill="none" stroke="currentColor" stroke-width="2"
-                                                 stroke-linecap="round" stroke-linejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <div class="flex flex-row gap-2 mt-1">
-                                    <span class="text-gray-700" th:text="${subscription.address}"></span>
-                                    <span class="text-gray-700 flex items-center gap-1">
-                                        <svg class="w-4 h-4 text-gray-500 fill-current"
-                                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
-                                            <path
-                                                d="M384 144c0-44.2-35.8-80-80-80s-80 35.8-80 80c0 36.4 24.3 67.1 57.5 76.8-.6 16.1-4.2 28.5-11 36.9-15.4 19.2-49.3 22.4-85.2 25.7-28.2 2.6-57.4 5.4-81.3 16.9v-144c32.5-10.2 56-40.5 56-76.3 0-44.2-35.8-80-80-80S0 35.8 0 80c0 35.8 23.5 66.1 56 76.3v199.3C23.5 365.9 0 396.2 0 432c0 44.2 35.8 80 80 80s80-35.8 80-80c0-34-21.2-63.1-51.2-74.6 3.1-5.2 7.8-9.8 14.9-13.4 16.2-8.2 40.4-10.4 66.1-12.8 42.2-3.9 90-8.4 118.2-43.4 14-17.4 21.1-39.8 21.6-67.9 31.6-10.8 54.4-41.2 54.4-75.9zM80 64c8.8 0 16 7.2 16 16s-7.2 16-16 16-16-7.2-16-16 7.2-16 16-16zm0 384c-8.8 0-16-7.2-16-16s7.2-16 16-16 16 7.2 16 16-7.2 16-16 16zm224-320c8.8 0 16 7.2 16 16s-7.2 16-16 16-16-7.2-16-16 7.2-16 16-16z"/>
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-lg font-bold text-gray-900" th:text="${subscription.subName}"></h3>
+                                <form th:action="@{'/dashboard/deleteSubscription/' + ${subscription.id}}" method="post"
+                                      class="m-0">
+                                    <input type="hidden" name="jwtToken">
+                                    <button type="submit"
+                                            class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors cursor-pointer border-none bg-transparent flex items-center justify-center"
+                                            title="Unsubscribe">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                <span th:text="${subscription.address}"></span>
+                                <span class="text-gray-300">|</span>
+                                <span
+                                    class="inline-flex items-center gap-1 font-mono bg-gray-100 px-1.5 rounded text-gray-600 text-xs border border-gray-200">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path
+                                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                                         <span th:text="${subscription.branch}">main</span>
                                     </span>
-                                </div>
                             </div>
-                        </div>
-
-                        <div class="flex flex-col w-[25%] items-center justify-center text-gray-700">
-                            <th:block th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}"
-                                      th:with="latestChange=${dataChangesMap.get(subscription.id)[0]}">
-
-                                <div class="flex flex-row gap-2">
-                                    <span class="font-medium">Latest:</span>
-                                    <span th:text="${#temporals.format(latestChange.timestamp, 'MM/dd/yyyy HH:mm')}+' CET'"></span>
-                                </div>
-
-                                <div class="flex flex-row gap-2">
-                                    <span>Commit:</span>
-                                    <span th:text="${latestChange.latestCommitShortSha}"></span>
-                                </div>
-                            </th:block>
-
-                            <th:block th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
-                                <span class="text-sm text-gray-500 italic">No changes yet</span>
-                            </th:block>
-                        </div>
-
-                        <div class="flex w-[5%] justify-end items-center text-black">
-                            <svg class="w-6 h-6 chevron-icon transition-transform duration-200"
-                                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
                         </div>
                     </div>
 
-                    <ul class="hidden data-changes list-none p-4 mt-2 bg-white border border-gray-200 rounded-xl shadow-inner">
+                    <div
+                        class="mt-4 md:mt-0 flex items-center gap-6 text-sm text-gray-500 px-4 border-l border-gray-100 hidden md:flex">
                         <th:block
-                            th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
-                            <li id="change" th:each="dataChanges : ${dataChangesMap[subscription.id]}"
-                                class="border-t border-dotted border-gray-400 pt-4 mb-4 first:border-t-0 first:pt-0">
-                                <div id="dataChangeTitle" class="text-xl mb-2">
-                                    <span th:text="${dataChanges.title}" id="dataChangeText" class="font-bold"></span>
-                                    <span class="text-gray-500 text-sm ml-2"
-                                          th:text="'('+${#temporals.format(dataChanges.timestamp, 'MM/dd/yyyy HH:mm')}+' CET)'"></span>
-                                </div>
-
-                                <div th:utext="${dataChanges.content}" id="content" class="markdown-content"></div>
-
-                                <div th:if="${dataChanges.openApiOld != null && dataChanges.openApiNew != null}"
-                                     class="mt-4 flex gap-3">
-                                    <button
-                                        th:onclick="'window.location.href=\'/download/old/' + ${dataChanges.id} + '\''"
-                                        class="btn-primary !mt-0 bg-gray-600 hover:bg-gray-700 text-sm">
-                                        ⬇ Old Spec
-                                    </button>
-                                    <button
-                                        th:onclick="'window.location.href=\'/download/new/' + ${dataChanges.id} + '\''"
-                                        class="btn-primary !mt-0 bg-green-500 hover:bg-green-600 text-sm">
-                                        ⬇ New Spec
-                                    </button>
-                                </div>
-                            </li>
+                            th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}"
+                            th:with="latestChange=${dataChangesMap.get(subscription.id)[0]}">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-0.5">Last
+                                    Update</p>
+                                <p class="font-medium text-gray-700"
+                                   th:text="${#temporals.format(latestChange.timestamp, 'MM/dd/yyyy HH:mm')} + ' CET'"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-0.5">
+                                    Commit</p>
+                                <p class="font-mono text-gray-700 font-medium"
+                                   th:text="${latestChange.latestCommitShortSha}"></p>
+                            </div>
                         </th:block>
-
                         <th:block
                             th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
-                            <li class="tw-info-style !py-1">
-                                There are currently no changes.
-                            </li>
+                            <div class="text-gray-400 italic">No updates recorded yet.</div>
                         </th:block>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+                    </div>
+
+                    <div class="ml-auto md:ml-4 text-gray-400">
+                        <svg class="w-6 h-6 chevron-icon transition-transform duration-200" fill="none"
+                             stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="data-changes hidden border-t border-gray-100 bg-gray-50/50 p-6 md:p-8">
+                    <th:block
+                        th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
+                        <div class="relative border-l-2 border-gray-200 ml-4 md:ml-6 py-2">
+                            <div th:each="dataChange, iterStat : ${dataChangesMap[subscription.id]}"
+                                 class="relative mb-12 pl-8 md:pl-10 last:mb-0">
+                                <div
+                                    class="absolute -left-[9px] top-7 h-4 w-4 rounded-full border-2 border-white shadow-sm"
+                                    th:classappend="${iterStat.first ? 'bg-blue-500' : 'bg-gray-400'}"></div>
+                                <div class="tw-inner-card">
+                                    <div
+                                        class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center gap-4 bg-white">
+                                        <span class="text-lg font-bold text-gray-800"
+                                              th:text="${#temporals.format(dataChange.timestamp, 'MM/dd/yyyy HH:mm')} + ' CET'"></span>
+                                        <span
+                                            class="font-mono bg-gray-100 px-2.5 py-1 rounded-md text-gray-600 border border-gray-200 text-sm shadow-sm"
+                                            th:text="${dataChange.latestCommitShortSha}"></span>
+                                        <span th:if="${dataChange.backwardIncompatible}"
+                                              class="flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-2 py-1 rounded-md">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                     viewBox="0 0 24 24"><path stroke-linecap="round"
+                                                                               stroke-linejoin="round" stroke-width="2"
+                                                                               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                                Breaking Changes
+                                        </span>
+                                    </div>
+
+                                    <div class="p-6">
+                                        <div class="markdown-content" th:utext="${dataChange.content}"></div>
+                                    </div>
+
+                                    <div th:if="${dataChange.openApiOld != null && dataChange.openApiNew != null}"
+                                         class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 justify-end">
+                                        <button
+                                            th:onclick="'window.location.href=\'/download/old/' + ${dataChange.id} + '\''"
+                                            class="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium py-1.5 px-4 rounded-lg transition-colors border border-gray-300 shadow-sm cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                            </svg>
+                                            Old Spec.json
+                                        </button>
+                                        <button
+                                            th:onclick="'window.location.href=\'/download/new/' + ${dataChange.id} + '\''"
+                                            class="btn-primary !px-4 !py-1.5 !text-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                            </svg>
+                                            New Spec.json
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+
+                    <th:block
+                        th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
+                        <div class="flex flex-col items-center justify-center py-8 text-gray-500 bg-white rounded-xl border border-gray-200 border-dashed">
+                            <svg class="w-10 h-10 mb-2 text-gray-300" fill="none" stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                            </svg>
+                            <p class="text-sm font-medium">No changelogs recorded yet for this branch.</p>
+                        </div>
+                    </th:block>
+
+                </div>
+            </li>
+        </ul>
     </div>
 
     <div id="subscribeTab" class="hide">
