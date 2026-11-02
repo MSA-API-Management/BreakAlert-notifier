@@ -27,6 +27,8 @@ public class DataChange {
 
     private LocalDateTime timestamp;
 
+    private String usageExamples;
+
     @Column(columnDefinition = "TEXT")
     private String changeSummary;
 

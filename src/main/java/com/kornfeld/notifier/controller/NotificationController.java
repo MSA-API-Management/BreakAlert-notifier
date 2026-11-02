@@ -107,23 +107,25 @@ public class NotificationController {
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 
-            String combinedMarkdown =
-                    "### Summary\n" + gptResponse + "\n\n" +
-                            "---\n" + cleanDetailedChanges + "\n\n" +
-                            "---\n" +
-                            "**API Examples (new version):**\n\n" +
-                            apiUsageExamples + "\n\n" +
-                            "---\n" +
-                            "**Subscription Details:**\n" +
-                            "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
+//            String combinedMarkdown =
+//                    "### Summary\n" + gptResponse + "\n\n" +
+//                            "---\n" + cleanDetailedChanges + "\n\n" +
+//                            "---\n" +
+//                            "**API Examples (new version):**\n\n" +
+//                            apiUsageExamples + "\n\n" +
+//                            "---\n" +
+//                            "**Subscription Details:**\n" +
+//                            "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
 
-            String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
+            String finalHtmlContent = convertMarkdownToHtml(cleanDetailedChanges); // or combinedMarkdown
             String title = "Change(s) in " + desiredSub.get().getSubName() + " detected";
             boolean isBreaking = checkIfBackwardIncompatible(markdownContent);
 
             DataChange dataChange = new DataChange();
             dataChange.setTitle(title);
             dataChange.setContent(finalHtmlContent);
+            dataChange.setChangeSummary(gptResponse);
+            dataChange.setUsageExamples(apiUsageExamples);
             dataChange.setOpenApiOld(oldSpec);
             dataChange.setOpenApiNew(newSpec);
             dataChange.setLatestCommitShortSha(latestCommitShortSha);
