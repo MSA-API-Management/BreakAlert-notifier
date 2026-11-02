@@ -89,6 +89,7 @@ public class NotificationController {
             @RequestPart(value = "newSpec", required = false) String newSpec,
             @RequestParam(value = "address") String address,
             @RequestParam(value = "branch") String branch,
+            @RequestParam(value = "commit") String commitShortSha,
             Model model
     ) {
         System.out.println("NOTIFICATION - Received request for address " + address + " branch " + branch);
@@ -124,6 +125,7 @@ public class NotificationController {
             dataChange.setContent(finalHtmlContent);
             dataChange.setOpenApiOld(oldSpec);
             dataChange.setOpenApiNew(newSpec);
+            dataChange.setCommitShortSha(commitShortSha);
 
             List<AppUser> users = userRepository.findAll();
 

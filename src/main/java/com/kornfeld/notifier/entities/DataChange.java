@@ -14,21 +14,22 @@ public class DataChange {
 
     @Column(columnDefinition = "TEXT")
     private String content;
+    @ManyToOne
+    @JoinColumn(name = "subscription_id")
+    private Subscription subscription;
+
+    private LocalDateTime timestamp;
+
+    @Column(columnDefinition = "TEXT")
+    private String changeSummary;
+
+    private String commitShortSha;
 
     @Column(columnDefinition = "TEXT")
     private String openApiOld;
 
     @Column(columnDefinition = "TEXT")
     private String openApiNew;
-
-    @Column(columnDefinition = "TEXT")
-    private String changeSummary;
-
-    @ManyToOne
-    @JoinColumn(name = "subscription_id")
-    private Subscription subscription;
-
-    private LocalDateTime timestamp;
 
     // Getter und Setter
 
@@ -70,6 +71,14 @@ public class DataChange {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public void setCommitShortSha(String commitShortSha) {
+        this.commitShortSha = commitShortSha;
+    }
+
+    public String getCommitShortSha() {
+        return commitShortSha;
     }
 
     public String getOpenApiOld() {
