@@ -94,11 +94,23 @@
                         </div>
 
                         <div class="flex flex-col w-[25%] items-center justify-center text-gray-700">
-                            <span>
-                                <span class="font-medium">Latest:</span>
-                                May 15,2025, 10:42 AM
-                            </span>
-                            <span>Commit: a1b2c3d</span>
+                            <th:block th:if="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}"
+                                      th:with="latestChange=${dataChangesMap.get(subscription.id)[0]}">
+
+                                <div class="flex flex-row gap-2">
+                                    <span class="font-medium">Latest:</span>
+                                    <span th:text="${#temporals.format(latestChange.timestamp, 'MM/dd/yyyy HH:mm')}+' CET'"></span>
+                                </div>
+
+                                <div class="flex flex-row gap-2">
+                                    <span>Commit:</span>
+                                    <span th:text="${latestChange.commitShortSha}"></span>
+                                </div>
+                            </th:block>
+
+                            <th:block th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
+                                <span class="text-sm text-gray-500 italic">No changes yet</span>
+                            </th:block>
                         </div>
 
                         <div class="flex w-[5%] justify-end items-center text-black">
