@@ -22,7 +22,8 @@ public class DataChange {
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
 
-    private boolean isBackwardIncompatible;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean backwardIncompatible;
 
     private LocalDateTime timestamp;
 
