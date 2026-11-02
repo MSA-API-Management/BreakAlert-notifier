@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -80,7 +79,7 @@ public class NotificationController {
         this.emailSender = emailSender;
     }
 
-    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
+    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main&commit=1a2b3cd" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
     @PostMapping(value = "/generate-response", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<String> generateResponse(
@@ -119,6 +118,7 @@ public class NotificationController {
 
             String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
             String title = "Change(s) in " + desiredSub.get().getSubName() + " detected";
+            boolean isBreaking = checkIfBackwardIncompatible(markdownContent);
 
             DataChange dataChange = new DataChange();
             dataChange.setTitle(title);
@@ -126,6 +126,7 @@ public class NotificationController {
             dataChange.setOpenApiOld(oldSpec);
             dataChange.setOpenApiNew(newSpec);
             dataChange.setCommitShortSha(commitShortSha);
+            dataChange.setBackwardIncompatible(isBreaking);
 
             List<AppUser> users = userRepository.findAll();
 
@@ -149,19 +150,28 @@ public class NotificationController {
 
     }
 
+    private boolean checkIfBackwardIncompatible(String markdown) {
+        if (markdown == null || markdown.isEmpty()) return false;
+
+        String lowerCaseMd = markdown.toLowerCase();
+
+        return lowerCaseMd.contains("broke backward compatibility");
+    }
+
     private String convertMarkdownToHtml(String markdown) {
-        if (markdown == null) return "";
+        if (markdown == null || markdown.isEmpty()) return "";
+
         return htmlRenderer.render(markdownParser.parse(markdown));
     }
 
-    private String normalizeMarkdown(String raw) {
-        if (raw == null) return "";
+    private String normalizeMarkdown(String markdown) {
+        if (markdown == null || markdown.isEmpty()) return "";
 
         // Removes Project Name and first ---
-        int firstSeparatorIndex = raw.indexOf("---");
+        int firstSeparatorIndex = markdown.indexOf("---");
         String content = (firstSeparatorIndex != -1)
-                ? raw.substring(firstSeparatorIndex + 3)
-                : raw;
+                ? markdown.substring(firstSeparatorIndex + 3)
+                : markdown;
 
         return content.trim();
     }

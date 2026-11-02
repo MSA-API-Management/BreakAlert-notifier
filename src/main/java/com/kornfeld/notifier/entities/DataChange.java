@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class DataChange {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,6 +21,8 @@ public class DataChange {
     @ManyToOne
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
+
+    private boolean isBackwardIncompatible;
 
     private LocalDateTime timestamp;
 
