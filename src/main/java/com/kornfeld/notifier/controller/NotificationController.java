@@ -79,7 +79,7 @@ public class NotificationController {
         this.emailSender = emailSender;
     }
 
-    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main&commit=1a2b3cd" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
+    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main&prevCommit=dc3b2a1&commit=1a2b3cd" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
     @PostMapping(value = "/generate-response", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<String> generateResponse(
@@ -88,7 +88,8 @@ public class NotificationController {
             @RequestPart(value = "newSpec", required = false) String newSpec,
             @RequestParam(value = "address") String address,
             @RequestParam(value = "branch") String branch,
-            @RequestParam(value = "commit") String commitShortSha,
+            @RequestParam(value = "prevCommit") String previousCommitShortSha,
+            @RequestParam(value = "commit") String latestCommitShortSha,
             Model model
     ) {
         System.out.println("NOTIFICATION - Received request for address " + address + " branch " + branch);
@@ -125,7 +126,8 @@ public class NotificationController {
             dataChange.setContent(finalHtmlContent);
             dataChange.setOpenApiOld(oldSpec);
             dataChange.setOpenApiNew(newSpec);
-            dataChange.setCommitShortSha(commitShortSha);
+            dataChange.setLatestCommitShortSha(latestCommitShortSha);
+            dataChange.setPrevCommitShortSha(previousCommitShortSha);
             dataChange.setBackwardIncompatible(isBreaking);
 
             List<AppUser> users = userRepository.findAll();

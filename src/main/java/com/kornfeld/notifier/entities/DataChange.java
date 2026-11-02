@@ -30,7 +30,9 @@ public class DataChange {
     @Column(columnDefinition = "TEXT")
     private String changeSummary;
 
-    private String commitShortSha;
+    private String prevCommitShortSha;
+
+    private String latestCommitShortSha;
 
     @Column(columnDefinition = "TEXT")
     private String openApiOld;
