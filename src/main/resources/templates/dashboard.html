@@ -132,10 +132,10 @@
                                         <span class="text-lg font-bold text-gray-800"
                                               th:text="${#temporals.format(dataChange.timestamp, 'MM/dd/yyyy HH:mm')} + ' CET'"></span>
                                         <span
-                                            class="font-mono bg-gray-100 px-2.5 py-1 rounded-md text-gray-600 border border-gray-200 text-sm shadow-sm"
+                                            class="font-mono bg-gray-100 px-2.5 py-1 rounded-md text-gray-600 border border-gray-200 text-xs shadow-sm"
                                             th:text="${dataChange.latestCommitShortSha}"></span>
                                         <span th:if="${dataChange.backwardIncompatible}"
-                                              class="flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-2 py-1 rounded-md">
+                                              class="flex items-center gap-1 bg-red-100 text-red-700 border shadow-sm border-red-200 text-xs font-bold px-2 py-1 rounded-md">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor"
                                                      viewBox="0 0 24 24"><path stroke-linecap="round"
                                                                                stroke-linejoin="round" stroke-width="2"
