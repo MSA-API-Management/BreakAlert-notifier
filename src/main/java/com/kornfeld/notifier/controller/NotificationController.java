@@ -165,7 +165,13 @@ public class NotificationController {
     private String convertMarkdownToHtml(String markdown) {
         if (markdown == null || markdown.isEmpty()) return "";
 
-        return htmlRenderer.render(markdownParser.parse(markdown));
+        String html = htmlRenderer.render(markdownParser.parse(markdown));
+
+        return html
+                .replace("<h4>What's New</h4>", "<h4 id=\"whats-new\">What's New</h4>")
+                .replace("<h4>What's Deleted</h4>", "<h4 id=\"whats-deleted\">What's Deleted</h4>")
+                .replace("<h4>What's Deprecated</h4>", "<h4 id=\"whats-deprecated\">What's Deprecated</h4>")
+                .replace("<h4>What's Changed</h4>", "<h4 id=\"whats-changed\">What's Changed</h4>");
     }
 
     private String normalizeMarkdown(String markdown) {
