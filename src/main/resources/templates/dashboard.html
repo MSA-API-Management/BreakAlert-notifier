@@ -24,9 +24,10 @@
 </div>
 
 <div class="flex-1 p-8 overflow-y-auto">
-    <div id="dashboardTab" class="max-w-6xl mx-auto">
+    <div id="dashboardTab" class="max-w-7xl mx-auto">
         <header class="mb-8">
-            <h2 class="text-black text-2xl font-bold mb-2">Welcome, <span th:text="${username}" class="text-blue-600"></span>!</h2>
+            <h2 class="text-black text-2xl font-bold mb-2">Welcome, <span th:text="${username}"
+                                                                          class="text-blue-600"></span>!</h2>
             <p class="text-gray-500">Monitor and manage all your active API subscriptions below.</p>
         </header>
 
@@ -143,9 +144,41 @@
                                                 Breaking Changes
                                         </span>
                                     </div>
+                                    <div class="flex flex-col p-4 gap-y-6">
+                                        <div class="flex flex-col rounded-lg border border-gray-100 p-3 bg-gray-50">
+                                            <span class="text-lg font-semibold border-b border-gray-200 pb-1 mb-3">Change Summary</span>
+                                            <span class="text-gray-800" th:utext="${dataChange.changeSummary}"></span>
+                                        </div>
 
-                                    <div class="p-6">
-                                        <div class="markdown-content" th:utext="${dataChange.content}"></div>
+                                        <div class="flex flex-col rounded-lg border border-gray-200 p-3">
+                                            <span class="text-lg font-semibold border-b border-gray-200 pb-1 mb-1">Detailed Changes</span>
+                                            <span class="markdown-content" th:utext="${dataChange.content}"></span>
+                                        </div>
+
+                                        <div
+                                            th:if="${dataChange.usageExamples != null && !dataChange.usageExamples.isEmpty()}"
+                                            class="flex flex-col rounded-lg border border-gray-800 p-3 bg-gray-900">
+                                            <span
+                                                class="text-md font-semibold border-b border-gray-700 pb-2 mb-4 text-gray-100">API Usage Examples (cURL)</span>
+                                            <div class="flex flex-col gap-5">
+                                                <div th:each="example : ${dataChange.usageExamples}">
+                                                    <div
+                                                        class="text-blue-400 font-bold font-mono text-sm mb-1.5 flex items-center gap-2">
+                                                        <span th:text="${example.key}+':'"></span>
+                                                    </div>
+                                                    <pre
+                                                        class="bg-black text-green-500 p-4 rounded-lg overflow-x-auto text-sm font-mono whitespace-pre-wrap shadow-inner border border-gray-800"
+                                                        th:text="${example.value}"></pre>
+
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!--                                        <div class="flex flex-col rounded-lg border border-gray-800 p-3 bg-gray-800">-->
+                                        <!--                                            <span class="text-lg font-semibold border-b border-gray-700 pb-1 mb-3 text-gray-100">Usage Examples (cURL)</span>-->
+                                        <!--                                            <span class="bg-black text-green-500 p-2 rounded-lg" th:utext="${dataChange.usageExamples}">TEST</span>-->
+                                        <!--                                        </div>-->
                                     </div>
 
                                     <div th:if="${dataChange.openApiOld != null && dataChange.openApiNew != null}"
@@ -176,7 +209,8 @@
 
                     <th:block
                         th:unless="${dataChangesMap != null && dataChangesMap.containsKey(subscription.id) && dataChangesMap.get(subscription.id).size() > 0}">
-                        <div class="flex flex-col items-center justify-center py-8 text-gray-500 bg-white rounded-xl border border-gray-200 border-dashed">
+                        <div
+                            class="flex flex-col items-center justify-center py-8 text-gray-500 bg-white rounded-xl border border-gray-200 border-dashed">
                             <svg class="w-10 h-10 mb-2 text-gray-300" fill="none" stroke="currentColor"
                                  viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
