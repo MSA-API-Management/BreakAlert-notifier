@@ -49,6 +49,12 @@
     }
     .markdown-content h3 { @apply text-xl; }
     .markdown-content h4 { @apply text-lg; }
+
+    .markdown-content h4#whats-new { @apply text-green-600; }
+    .markdown-content h4#whats-deleted { @apply text-red-600; }
+    .markdown-content h4#whats-deprecated { @apply text-orange-500; }
+    .markdown-content h4#whats-changed { @apply text-blue-600; }
+
     .markdown-content h5 { @apply text-base; }
     .markdown-content h6 { @apply text-sm text-gray-500; }
     .markdown-content p { @apply text-base leading-relaxed mb-4 text-gray-700; }
