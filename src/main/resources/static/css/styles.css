@@ -41,14 +41,14 @@
         @apply transition-all duration-300 ease-in-out;
     }
 
-    .markdown-content { @apply mt-2.5; }
+    /*.markdown-content { @apply mt-1; }*/
     .markdown-content ul { @apply list-disc pl-5 space-y-2 my-2.5; }
     .markdown-content li { @apply mb-1.5 text-sm; }
     .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
         @apply mt-6 mb-4 font-semibold leading-tight text-gray-800;
     }
     .markdown-content h3 { @apply text-xl; }
-    .markdown-content h4 { @apply text-lg; }
+    .markdown-content h4 { @apply text-base mt-4; }
 
     .markdown-content h4#whats-new { @apply text-green-600; }
     .markdown-content h4#whats-deleted { @apply text-red-600; }
