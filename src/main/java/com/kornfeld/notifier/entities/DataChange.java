@@ -3,7 +3,9 @@ package com.kornfeld.notifier.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Entity
 @Getter
@@ -27,7 +29,11 @@ public class DataChange {
 
     private LocalDateTime timestamp;
 
-    private String usageExamples;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "data_change_examples", joinColumns = @JoinColumn(name = "data_change_id"))
+    @MapKeyColumn(name = "endpoint_title")
+    @Column(name = "curl_command", columnDefinition = "TEXT")
+    private Map<String, String> usageExamples;
 
     @Column(columnDefinition = "TEXT")
     private String changeSummary;

@@ -26,10 +26,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Controller
@@ -103,7 +100,7 @@ public class NotificationController {
             System.out.println("NOTIFICATION - Generated response: " + gptResponse);
 
             Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
-            String apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
+            Map<String, String> apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 
