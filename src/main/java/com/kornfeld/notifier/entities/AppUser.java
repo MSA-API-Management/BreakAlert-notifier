@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -25,6 +26,9 @@ public class AppUser implements UserDetails {
     private String email;
     private String token;
 
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_subscription",
@@ -34,7 +38,9 @@ public class AppUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        Role effectiveRole = this.role != null ? this.role : Role.USER;
+
+        return List.of(new SimpleGrantedAuthority("ROLE_" + effectiveRole.name()));
     }
 
     @Override

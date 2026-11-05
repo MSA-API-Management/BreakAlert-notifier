@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -230,29 +230,31 @@
             <h2 class="text-2xl text-[#333] font-bold mb-2">Subscriptions</h2>
             <p class="text-gray-600 mb-6">You can find all repos you can subscribe to here.</p>
 
-            <div class="flex items-center gap-3 mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
-                <p class="font-medium m-0 whitespace-nowrap">Add subscription:</p>
-                <form th:action="@{/subscriptions}" method="post" class="flex flex-row items-center gap-2 w-full">
-                    <input required name="subName" type="text" class="tw-input flex-1 !p-1.5 text-sm"
-                           placeholder="Name">
-                    <input required name="address" type="text" class="tw-input flex-1 !p-1.5 text-sm"
-                           placeholder="Address">
-                    <input required name="branch" type="text" class="tw-input flex-1 !p-1.5 text-sm"
-                           placeholder="Branch">
-                    <button type="submit"
-                            class="btn-primary !mt-0 !py-1.5 px-4 bg-green-500 hover:bg-green-600 font-bold">+
-                    </button>
-                </form>
-            </div>
+            <div sec:authorize="hasRole('ADMIN')">
+                <div class="flex items-center gap-3 mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
+                    <p class="font-medium m-0 whitespace-nowrap">Add subscription:</p>
+                    <form th:action="@{/subscriptions}" method="post" class="flex flex-row items-center gap-2 w-full">
+                        <input required name="subName" type="text" class="tw-input flex-1 !p-1.5 text-sm"
+                               placeholder="Name">
+                        <input required name="address" type="text" class="tw-input flex-1 !p-1.5 text-sm"
+                               placeholder="Address">
+                        <input required name="branch" type="text" class="tw-input flex-1 !p-1.5 text-sm"
+                               placeholder="Branch">
+                        <button type="submit"
+                                class="btn-primary !mt-0 !py-1.5 px-4 bg-green-500 hover:bg-green-600 font-bold">+
+                        </button>
+                    </form>
+                </div>
 
-            <div th:if="${subscriptionSuccess}" class="font-bold mb-4 text-green-600" id="subscriptionSuccess">
-                <span>Subscription successfully added!</span>
-            </div>
+                <div th:if="${subscriptionSuccess}" class="font-bold mb-4 text-green-600" id="subscriptionSuccess">
+                    <span>Subscription successfully added!</span>
+                </div>
 
-            <div th:if="${subscriptionError}" class="font-bold mb-4 text-red-600" id="subscriptionError">
-                <strong>Error:</strong>
-                <span
-                    th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>
+                <div th:if="${subscriptionError}" class="font-bold mb-4 text-red-600" id="subscriptionError">
+                    <strong>Error:</strong>
+                    <span
+                        th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>
+                </div>
             </div>
 
             <table class="w-full border-collapse border border-gray-300 rounded-md overflow-hidden">
