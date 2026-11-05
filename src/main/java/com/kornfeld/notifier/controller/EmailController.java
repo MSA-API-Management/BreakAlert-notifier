@@ -18,6 +18,7 @@ public class EmailController {
     @Autowired
     private EmailSender emailSender;
 
+//    TODO marked for removal / protection
     @PostMapping("/sendTest")
     public String sendTestEmail(@RequestParam String title, @RequestParam String body, @RequestParam String toEmail) {
         System.out.println("sending...");
