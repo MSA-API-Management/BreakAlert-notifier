@@ -5,18 +5,22 @@ function showTab(tabName) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.toggle-button').forEach(function(button) {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation();
-            event.preventDefault();
-            // Get current subscription
-            const subscriptionItem = button.closest('.subscription-item');
-            // Extract the corresponding data change class
+    document.querySelectorAll('.subscription-card').forEach(function(card) {
+        card.addEventListener('click', function(event) {
+            if (event.target.closest('button') || event.target.closest('form')) {
+                return;
+            }
+
+            const subscriptionItem = card.closest('li');
             const dataChanges = subscriptionItem.querySelector('.data-changes');
+            const chevron = card.querySelector('.chevron-icon');
+
             if (dataChanges) {
-                const isVisible = dataChanges.style.display === 'block';
-                dataChanges.style.display = isVisible ? 'none' : 'block';
-                button.textContent = isVisible ? 'Show Data Changes' : 'Hide Data Changes';
+                dataChanges.classList.toggle('hidden');
+            }
+
+            if (chevron) {
+                chevron.classList.toggle('rotate-90');
             }
         });
     });
@@ -45,6 +49,10 @@ window.onload = function() {
         storeToken(token);
         // Remove the token parameter from the URL
         window.history.replaceState({}, document.title, "/dashboard");
-        document.getElementById("tokenInput").value = token;
+
+        const tokenInput = document.getElementById("tokenInput");
+        if (tokenInput) {
+            tokenInput.value = token;
+        }
     }
 };

@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Something went wrong</title>
-    <link rel="stylesheet" th:href="@{/css/error.css}"/>
+    <link rel="stylesheet" th:href="@{/css/output.css}"/>
 </head>
-<body>
-<h1>Something went wrong...</h1>
-<h4 th:if="${credentials}">You entered bad credentials</h4>
-<h3><a href="/" class="btn btn-primary">Go to start</a></h3>
+<body class="tw-body">
+
+<div class="tw-card text-center flex flex-col items-center">
+    <h1 class="tw-heading">Something went wrong...</h1>
+    <h4 class="block text-black text-lg font-medium mb-4" th:if="${credentials}">You entered bad credentials</h4>
+
+    <h3 class="block text-black">
+        <a href="/" class="btn-primary">Go to start</a>
+    </h3>
+</div>
+
 </body>
 </html>

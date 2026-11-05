@@ -12,10 +12,7 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class OpenApiExampleGeneratorService {
@@ -23,87 +20,69 @@ public class OpenApiExampleGeneratorService {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     * Generates curl examples for selected endpoints from an OpenAPI specification
+     * Generates curl examples for selected endpoints from an OpenAPI specification.
+     *
      * @param openApiJson OpenAPI specification as JSON
      * @param address base address of the API
      * @param targetEndpoints endpoints to include (method + path)
-     * @return generated curl examples or an error/message string
+     * @return a map containing the endpoint identifier (e.g., "GET /path") as the key and the generated curl command as the value. Returns an empty map if no endpoints match or an error occurs.
      */
-    public String generateCurlExamples(String openApiJson,
-                                       String address,
-                                       Set<String> targetEndpoints) {
-        if (openApiJson == null || openApiJson.isEmpty()) {
-            return "No OpenAPI spec provided to generate API usage examples\n";
-        }
-
-        if (targetEndpoints == null || targetEndpoints.isEmpty()) {
-            return "No new or changed endpoints detected.\n";
+    public Map<String, String> generateCurlExamples(String openApiJson, String address, Set<String> targetEndpoints) {
+        if (openApiJson == null || openApiJson.isEmpty() || targetEndpoints == null || targetEndpoints.isEmpty()) {
+            return Collections.emptyMap();
         }
 
         try {
             OpenAPI openAPI = new OpenAPIV3Parser().readContents(openApiJson, null, null).getOpenAPI();
-
-            if (openAPI == null || openAPI.getPaths() == null) {
-                return "Could not parse OpenAPI description\n";
-            }
+            if (openAPI == null || openAPI.getPaths() == null) return Collections.emptyMap();
 
             String baseUrl = generateBaseUrl(address);
 
-            StringBuilder samples = new StringBuilder();
-
+            Map<String, String> examples = new LinkedHashMap<>();
             int count = 0;
+
             for (Map.Entry<String, PathItem> entry : openAPI.getPaths().entrySet()) {
                 if (SAMPLE_LIMIT != -1 && count >= SAMPLE_LIMIT) break;
 
                 String path = entry.getKey();
                 if (!path.startsWith("/")) path = "/" + path;
-
                 PathItem pathItem = entry.getValue();
 
-                count = processOperation("GET", path, pathItem.getGet(), baseUrl, samples, count, targetEndpoints, openAPI);
-                count = processOperation("POST", path, pathItem.getPost(), baseUrl, samples, count, targetEndpoints, openAPI);
-                count = processOperation("PUT", path, pathItem.getPut(), baseUrl, samples, count, targetEndpoints, openAPI);
-                count = processOperation("PATCH", path, pathItem.getPatch(), baseUrl, samples, count, targetEndpoints, openAPI);
-                count = processOperation("DELETE", path, pathItem.getDelete(), baseUrl, samples, count, targetEndpoints, openAPI);
+                count = processOperation("GET", path, pathItem.getGet(), baseUrl, examples, count, targetEndpoints, openAPI);
+                count = processOperation("POST", path, pathItem.getPost(), baseUrl, examples, count, targetEndpoints, openAPI);
+                count = processOperation("PUT", path, pathItem.getPut(), baseUrl, examples, count, targetEndpoints, openAPI);
+                count = processOperation("PATCH", path, pathItem.getPatch(), baseUrl, examples, count, targetEndpoints, openAPI);
+                count = processOperation("DELETE", path, pathItem.getDelete(), baseUrl, examples, count, targetEndpoints, openAPI);
             }
-
-            if (samples.isEmpty()) return "No samples found\n";
-            return samples.toString();
+            return examples;
 
         } catch (Exception e) {
             System.err.println("Error generating API usage examples: " + e.getMessage());
-            return "Error occurred while generating API examples.\n";
+            return Collections.emptyMap();
         }
     }
 
     /**
-     * Generates a curl example in markdown format for a matching operation
-     * @param method
-     * @param rawPath
-     * @param operation
-     * @param baseUrl
-     * @param samples
-     * @param count
-     * @param targetEndpoints
-     * @param openAPI
+     * Generates a raw curl example for a matching operation and adds it to the provided map.
+     *
+     * @param method HTTP method (e.g., "GET", "POST")
+     * @param rawPath API endpoint path (e.g., "/users/{id}")
+     * @param operation OpenAPI Operation object containing request details
+     * @param baseUrl base URL of the API
+     * @param examples map to store the generated curl commands
+     * @param count current number of generated examples
+     * @param targetEndpoints set of target endpoints to filter by
+     * @param openAPI parsed OpenAPI specification for resolving references (like request bodies)
      * @return updated sample count
      */
-    private int processOperation(
-            String method,
-            String rawPath,
-            Operation operation,
-            String baseUrl,
-            StringBuilder samples,
-            int count,
-            Set<String> targetEndpoints,
-            OpenAPI openAPI
-    ) {
+    private int processOperation(String method, String rawPath, Operation operation, String baseUrl,
+                                 Map<String, String> examples, int count, Set<String> targetEndpoints, OpenAPI openAPI) {
         if (operation == null) return count;
 
         String endpointKey = method + " " + rawPath;
         if (!targetEndpoints.contains(endpointKey)) return count;
 
-        String resolvedPath = rawPath.replaceAll("\\{([^}]+)}", "123"); // replaces all path variables with sample input
+        String resolvedPath = rawPath.replaceAll("\\{([^}]+)}", "123");
 
         // Replaces query params with sample input
         StringBuilder query = new StringBuilder();
@@ -117,26 +96,20 @@ public class OpenApiExampleGeneratorService {
         }
 
         String fullUrl = baseUrl + resolvedPath + query;
+        StringBuilder curlCmd = new StringBuilder();
 
-        samples.append("**``").append(method).append("`` ").append(rawPath).append("**\n");
-        samples.append("```bash\n");
-        samples.append("curl -X ").append(method).append(" \"").append(fullUrl).append("\"");
+        curlCmd.append("curl -X ").append(method).append(" \"").append(fullUrl).append("\"");
 
         String acceptHeader = extractResponseAcceptHeader(operation);
-        samples.append(" \\\n  -H \"accept: ").append(acceptHeader).append("\"");
+        curlCmd.append(" \\\n  -H \"accept: ").append(acceptHeader).append("\"");
 
-        if (operation.getRequestBody() != null) {
-            if (method.equals("POST") || method.equals("PUT") || method.equals("PATCH")) {
-                String requestBodyExample = extractSampleJson(operation.getRequestBody(), openAPI);
-
-                samples.append(" \\\n  -H \"Content-Type: application/json\"")
-                        .append(" \\\n  -d '")
-                        .append(requestBodyExample)
-                        .append("'");
-            }
+        if (operation.getRequestBody() != null && (method.equals("POST") || method.equals("PUT") || method.equals("PATCH"))) {
+            String requestBodyExample = extractSampleJson(operation.getRequestBody(), openAPI);
+            curlCmd.append(" \\\n  -H \"Content-Type: application/json\"")
+                    .append(" \\\n  -d '").append(requestBodyExample).append("'");
         }
 
-        samples.append("\n```\n\n");
+        examples.put(endpointKey, curlCmd.toString());
 
         return count + 1;
     }

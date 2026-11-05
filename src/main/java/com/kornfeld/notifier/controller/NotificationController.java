@@ -25,12 +25,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Controller
@@ -80,7 +76,7 @@ public class NotificationController {
         this.emailSender = emailSender;
     }
 
-    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
+    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main&prevCommit=dc3b2a1&commit=1a2b3cd" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
     @PostMapping(value = "/generate-response", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<String> generateResponse(
@@ -89,6 +85,8 @@ public class NotificationController {
             @RequestPart(value = "newSpec", required = false) String newSpec,
             @RequestParam(value = "address") String address,
             @RequestParam(value = "branch") String branch,
+            @RequestParam(value = "prevCommit") String previousCommitShortSha,
+            @RequestParam(value = "commit") String latestCommitShortSha,
             Model model
     ) {
         System.out.println("NOTIFICATION - Received request for address " + address + " branch " + branch);
@@ -102,28 +100,34 @@ public class NotificationController {
             System.out.println("NOTIFICATION - Generated response: " + gptResponse);
 
             Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
-            String apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
+            Map<String, String> apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
 
             String cleanDetailedChanges = normalizeMarkdown(markdownContent);
 
-            String combinedMarkdown =
-                    "### Summary\n" + gptResponse + "\n\n" +
-                            "---\n" + cleanDetailedChanges + "\n\n" +
-                            "---\n" +
-                            "**API Examples (new version):**\n\n" +
-                            apiUsageExamples + "\n\n" +
-                            "---\n" +
-                            "**Subscription Details:**\n" +
-                            "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
+//            String combinedMarkdown =
+//                    "### Summary\n" + gptResponse + "\n\n" +
+//                            "---\n" + cleanDetailedChanges + "\n\n" +
+//                            "---\n" +
+//                            "**API Examples (new version):**\n\n" +
+//                            apiUsageExamples + "\n\n" +
+//                            "---\n" +
+//                            "**Subscription Details:**\n" +
+//                            "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
 
-            String finalHtmlContent = convertMarkdownToHtml(combinedMarkdown);
+            String finalHtmlContent = convertMarkdownToHtml(cleanDetailedChanges); // or combinedMarkdown
             String title = "Change(s) in " + desiredSub.get().getSubName() + " detected";
+            boolean isBreaking = checkIfBackwardIncompatible(markdownContent);
 
             DataChange dataChange = new DataChange();
             dataChange.setTitle(title);
             dataChange.setContent(finalHtmlContent);
+            dataChange.setChangeSummary(gptResponse);
+            dataChange.setUsageExamples(apiUsageExamples);
             dataChange.setOpenApiOld(oldSpec);
             dataChange.setOpenApiNew(newSpec);
+            dataChange.setLatestCommitShortSha(latestCommitShortSha);
+            dataChange.setPrevCommitShortSha(previousCommitShortSha);
+            dataChange.setBackwardIncompatible(isBreaking);
 
             List<AppUser> users = userRepository.findAll();
 
@@ -147,19 +151,34 @@ public class NotificationController {
 
     }
 
-    private String convertMarkdownToHtml(String markdown) {
-        if (markdown == null) return "";
-        return htmlRenderer.render(markdownParser.parse(markdown));
+    private boolean checkIfBackwardIncompatible(String markdown) {
+        if (markdown == null || markdown.isEmpty()) return false;
+
+        String lowerCaseMd = markdown.toLowerCase();
+
+        return lowerCaseMd.contains("broke backward compatibility");
     }
 
-    private String normalizeMarkdown(String raw) {
-        if (raw == null) return "";
+    private String convertMarkdownToHtml(String markdown) {
+        if (markdown == null || markdown.isEmpty()) return "";
+
+        String html = htmlRenderer.render(markdownParser.parse(markdown));
+
+        return html
+                .replace("<h4>What's New</h4>", "<h4 id=\"whats-new\">What's New</h4>")
+                .replace("<h4>What's Deleted</h4>", "<h4 id=\"whats-deleted\">What's Deleted</h4>")
+                .replace("<h4>What's Deprecated</h4>", "<h4 id=\"whats-deprecated\">What's Deprecated</h4>")
+                .replace("<h4>What's Changed</h4>", "<h4 id=\"whats-changed\">What's Changed</h4>");
+    }
+
+    private String normalizeMarkdown(String markdown) {
+        if (markdown == null || markdown.isEmpty()) return "";
 
         // Removes Project Name and first ---
-        int firstSeparatorIndex = raw.indexOf("---");
+        int firstSeparatorIndex = markdown.indexOf("---");
         String content = (firstSeparatorIndex != -1)
-                ? raw.substring(firstSeparatorIndex + 3)
-                : raw;
+                ? markdown.substring(firstSeparatorIndex + 3)
+                : markdown;
 
         return content.trim();
     }

@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@layer components {
+    .tw-body {
+        @apply m-0 p-0 font-sans bg-gray-50 h-screen flex flex-col items-center justify-center px-4 text-gray-800;
+    }
+
+    .btn-primary {
+        @apply flex items-center justify-center gap-2 px-6 py-2 border-none rounded-lg bg-blue-600 text-white font-medium cursor-pointer transition-colors hover:bg-blue-700 shadow-sm whitespace-nowrap;
+    }
+
+    .tw-input {
+        @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 box-border text-sm md:text-base transition-shadow;
+    }
+
+    .tw-heading {
+        @apply text-black text-center text-3xl font-bold mb-6;
+    }
+
+    .tw-inner-card {
+        @apply bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden;
+    }
+
+    .tw-card {
+        @apply bg-white rounded-lg p-8 shadow-sm w-full max-w-md;
+    }
+
+    .tw-dashboard-layout {
+        @apply m-0 p-0 font-sans bg-gray-50 h-screen flex overflow-hidden text-gray-800;
+    }
+
+    .tw-dashboard-card {
+        @apply bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-200 w-full max-w-6xl mx-auto;
+    }
+
+    .hide {
+        @apply hidden;
+    }
+
+    .data-changes {
+        @apply transition-all duration-300 ease-in-out;
+    }
+
+    /*.markdown-content { @apply mt-1; }*/
+    .markdown-content ul { @apply list-disc pl-5 space-y-2 my-2.5; }
+    .markdown-content li { @apply mb-1.5 text-sm; }
+    .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+        @apply mt-6 mb-4 font-semibold leading-tight text-gray-800;
+    }
+    .markdown-content h3 { @apply text-xl; }
+    .markdown-content h4 { @apply text-base mt-4; }
+
+    .markdown-content h4#whats-new { @apply text-green-600; }
+    .markdown-content h4#whats-deleted { @apply text-red-600; }
+    .markdown-content h4#whats-deprecated { @apply text-orange-500; }
+    .markdown-content h4#whats-changed { @apply text-blue-600; }
+
+    .markdown-content h5 { @apply text-base; }
+    .markdown-content h6 { @apply text-sm text-gray-500; }
+    .markdown-content p { @apply text-base leading-relaxed mb-4 text-gray-700; }
+    .markdown-content blockquote {
+        @apply px-4 text-gray-500 border-l-4 border-gray-200 bg-gray-50 text-left block my-0;
+    }
+    .markdown-content code {
+        @apply px-1.5 py-0.5 m-0 text-[85%] bg-gray-100 rounded-[3px] font-mono border border-gray-200 text-gray-800;
+    }
+    .markdown-content pre {
+        @apply p-4 overflow-auto text-[85%] leading-relaxed bg-gray-900 text-green-400 rounded-lg text-sm shadow-inner;
+    }
+    .markdown-content pre code {
+        @apply bg-transparent p-0 text-inherit border-none;
+    }
+
+    .tw-info-style {
+        @apply italic text-gray-600;
+    }
+
+    .tw-link-style {
+        @apply cursor-pointer text-blue-600 font-medium hover:underline;
+    }
+}

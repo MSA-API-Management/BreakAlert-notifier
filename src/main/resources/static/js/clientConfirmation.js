@@ -2,8 +2,8 @@ function storeToken(token) {
     console.log("Store Token");
     localStorage.setItem('jwtToken', token);
 
-    var jwtTokenInputs = document.getElementsByName("token");
-    for (var i = 0; i < jwtTokenInputs.length; i++) {
+    const jwtTokenInputs = document.getElementsByName("token");
+    for (let i = 0; i < jwtTokenInputs.length; i++) {
         jwtTokenInputs[i].value = localStorage.getItem("jwtToken");
     }
 }
@@ -16,11 +16,17 @@ function clearToken() {
 window.onload = function() {
     console.log("Initializing...");
     const urlParams = new URLSearchParams(window.location.search);
-    token = urlParams.get('token');
+    const token = urlParams.get('token');
+
     if (token) {
         storeToken(token);
-        // Remove the token parameter from the URL
-        window.history.replaceState({}, document.title, "/dashboard");
-        document.getElementById("tokenInput").value = token;
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        const tokenInput = document.getElementById("tokenInput");
+        const tokenInputError = document.getElementById("tokenInputError");
+
+        if (tokenInput) tokenInput.value = token;
+        if (tokenInputError) tokenInputError.value = token;
     }
 };

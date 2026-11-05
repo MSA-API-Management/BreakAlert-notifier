@@ -86,7 +86,9 @@ public class DashboardController {
             }
         }
 
-        model.addAttribute("subscriptions", subscriptions);
+        List<Subscription> sortedSubscriptions = new ArrayList<>(subscriptions);
+        sortedSubscriptions.sort(Comparator.comparing(Subscription::getSubName, String.CASE_INSENSITIVE_ORDER));
+        model.addAttribute("subscriptions", sortedSubscriptions);
         model.addAttribute("dataChangesMap", dataChangesMap);
 
         return "dashboard";
@@ -200,8 +202,9 @@ public class DashboardController {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
         }
 
+        String fileName = String.format("old-openapi_%s.json",change.getPrevCommitShortSha());
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=old-openapi.json")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+ fileName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(json.getBytes(StandardCharsets.UTF_8));
     }
@@ -216,8 +219,9 @@ public class DashboardController {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
         }
 
+        String fileName = String.format("new-openapi_%s.json",change.getLatestCommitShortSha());
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=new-openapi.json")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(json.getBytes(StandardCharsets.UTF_8));
     }
