@@ -7,6 +7,7 @@ import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Setter
 @Controller
 @RequestMapping("/subscriptions")
 public class SubscriptionController {
@@ -41,22 +43,6 @@ public class SubscriptionController {
                                   UserRepository userRepository) {
         this.dataChangeRepository = dataChangeRepository;
         this.subscriptionRepository = subscriptionRepository;
-        this.userRepository = userRepository;
-    }
-
-    public void setEntityManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
-    public void setSubscriptionRepository(SubscriptionRepository subscriptionRepository) {
-        this.subscriptionRepository = subscriptionRepository;
-    }
-
-    public void setDataChangeRepository(DataChangeRepository dataChangeRepository) {
-        this.dataChangeRepository = dataChangeRepository;
-    }
-
-    public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
