@@ -237,21 +237,7 @@
                     </button>
                 </div>
             </div>
-
-            <!-- Alerts TODO -->
-<!--            <div th:if="${subscriptionSuccess}"-->
-<!--                 class="font-bold mb-4 p-3 bg-green-50 text-green-700 rounded-md border border-green-200"-->
-<!--                 id="subscriptionSuccess">-->
-<!--                <span>Subscription successfully added!</span>-->
-<!--            </div>-->
-<!--            <div th:if="${subscriptionError}"-->
-<!--                 class="font-bold mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200"-->
-<!--                 id="subscriptionError">-->
-<!--                <strong>Error:</strong>-->
-<!--                <span-->
-<!--                    th:text="${subscriptionErrorMessage != null ? subscriptionErrorMessage : 'Adding subscription was not successful!'}"></span>-->
-<!--            </div>-->
-
+            
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse border border-gray-300 rounded-md overflow-hidden">
                     <thead>
@@ -495,5 +481,6 @@
         }
     }
 </script>
+<div th:replace="~{fragments/snackbar :: snackbar}"></div>
 </body>
 </html>

@@ -107,10 +107,9 @@ public class SubscriptionController {
         ResponseEntity<String> response = addSubscription(subscription);
 
         if(response.getStatusCode().equals(HttpStatus.CREATED)) {
-            redirectAttributes.addFlashAttribute("subscriptionSuccess", true);
+            redirectAttributes.addFlashAttribute("successMessage", "Subscription successfully added!");
         } else {
-            redirectAttributes.addFlashAttribute("subscriptionError", true);
-            redirectAttributes.addFlashAttribute("subscriptionErrorMessage", response.getBody());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + response.getBody());
         }
 
         return "redirect:/dashboard?tab=subscribe";
