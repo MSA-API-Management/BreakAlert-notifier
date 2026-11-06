@@ -9,7 +9,6 @@ import net.jamnig.breakalert.repositories.SubscriptionRepository;
 import net.jamnig.breakalert.repositories.UserRepository;
 import net.jamnig.breakalert.services.EmailSender;
 import net.jamnig.breakalert.services.GptAPIService;
-import net.jamnig.breakalert.services.HTMLParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -32,8 +31,8 @@ public class NotificationControllerTest {
     @Mock
     private GptAPIService gpt3ApiService;
 
-    @Mock
-    private HTMLParser htmlParser;
+//    @Mock
+//    private HTMLParser htmlParser;
 
     @Mock
     private EmailSender emailSender;
@@ -75,7 +74,7 @@ public class NotificationControllerTest {
 
         when(subscriptionRepository.findByAddressAndBranch(eq("testing.com"), eq("main"))).thenReturn(Optional.of(subscription));
         when(userRepository.findAll()).thenReturn(Collections.singletonList(user));
-        when(htmlParser.extractChanges(anyString())).thenReturn("HTML Content");
+//        when(htmlParser.extractChanges(anyString())).thenReturn("HTML Content");
         when(gpt3ApiService.generateResponse(anyString())).thenReturn("Response Content");
         doNothing().when(emailSender).sendEmail(anyString(), anyString(), anyString());
         doAnswer(invocation -> {
@@ -88,7 +87,7 @@ public class NotificationControllerTest {
 //        ResponseEntity<String> responseEntity = controller.generateResponse("HTML Content", null, null,"testing.com", "main", "dc3b2a1", "1a2b3cd", null);
 
         verify(subscriptionRepository, times(1)).findByAddressAndBranch("testing.com", "main");
-        verify(htmlParser, times(1)).extractChanges("HTML Content");
+//        verify(htmlParser, times(1)).extractChanges("HTML Content");
         verify(gpt3ApiService, times(1)).generateResponse(anyString());
         verify(emailSender, times(1)).sendEmail("user@test.com", "Change(s) in testname detected", "Summary:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
         verify(dataChangeRepository, times(1)).save(dataChangeCaptor.capture());
