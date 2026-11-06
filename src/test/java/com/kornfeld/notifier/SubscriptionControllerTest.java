@@ -40,11 +40,11 @@ public class SubscriptionControllerTest {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        controller.setDataChangeRepository(dataChangeRepository);
-        controller.setSubscriptionRepository(subscriptionRepository);
-        controller.setUserRepository(userRepository);
-        controller.setEntityManager(entityManager);
+//        MockitoAnnotations.openMocks(this);
+//        controller.setDataChangeRepository(dataChangeRepository);
+//        controller.setSubscriptionRepository(subscriptionRepository);
+//        controller.setUserRepository(userRepository);
+//        controller.setEntityManager(entityManager);
     }
 
     @Test
