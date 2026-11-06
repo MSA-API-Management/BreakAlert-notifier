@@ -11,7 +11,7 @@
     <h1 class="tw-heading">Sign Up</h1>
     <form th:action="@{/process_register}" th:object="${user}" method="post" class="flex flex-col">
         <div class="w-full mb-4">
-            <label for="name" class="block mb-1 text-gray-700 font-medium text-sm text-left">Name:</label>
+            <label for="name" class="block mb-1 text-gray-700 font-medium text-sm text-left">Username:</label>
             <input type="text" id="name" th:field="*{name}" required minlength="2" maxlength="20" class="tw-input">
         </div>
         <div class="w-full mb-6">
@@ -31,6 +31,8 @@
         </div>
     </form>
 </div>
+
+<div th:replace="~{fragments/snackbar :: snackbar}"></div>
 
 </body>
 </html>
