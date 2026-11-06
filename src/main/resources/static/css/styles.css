@@ -6,7 +6,27 @@
     }
 
     .btn-primary {
-        @apply flex items-center justify-center gap-2 px-6 py-2 border-none rounded-lg bg-blue-600 text-white font-medium cursor-pointer transition-colors hover:bg-blue-700 shadow-sm whitespace-nowrap;
+        @apply flex items-center justify-center gap-2 px-6 py-2 border-none rounded-lg  font-medium cursor-pointer transition-colors shadow-sm whitespace-nowrap;
+    }
+
+    .btn-blue {
+        @apply bg-blue-600 hover:bg-blue-700 text-white
+    }
+
+    .btn-white {
+        @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50
+    }
+
+    .btn-gray {
+        @apply bg-gray-500 hover:bg-gray-600 text-white
+    }
+
+    .btn-green {
+        @apply bg-green-500 hover:bg-green-600 text-white
+    }
+
+    .btn-red {
+        @apply  bg-red-500 hover:bg-red-600 text-white
     }
 
     .tw-input {
