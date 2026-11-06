@@ -38,7 +38,6 @@ public class SecurityConfiguration {
                                 "/process_register",
                                 "/css/**",
                                 "/js/**",
-                                "/subscriptions",
                                 "/generate-response",
                                 "/subscriptions/processAll",
                                 "/error",

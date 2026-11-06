@@ -8,162 +8,176 @@ import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
 import com.kornfeld.notifier.services.EmailSender;
 import com.kornfeld.notifier.services.GptAPIService;
-import com.kornfeld.notifier.services.HTMLParser;
 import com.kornfeld.notifier.services.OpenApiExampleGeneratorService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.http.*;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
-@Controller
+@Slf4j
+@RestController
+@RequiredArgsConstructor
 public class NotificationController {
-
     private final GptAPIService gptApiService;
     private final OpenApiExampleGeneratorService openApiExampleGeneratorService;
-    private final HTMLParser htmlParser;
-    @Autowired
-    private EmailSender emailSender;
-
-    private final Parser markdownParser;
-    private final HtmlRenderer htmlRenderer;
+    private final EmailSender emailSender;
 
     private final DataChangeRepository dataChangeRepository;
-
     private final SubscriptionRepository subscriptionRepository;
-
-    private RestTemplate restTemplate;
-
     private final UserRepository userRepository;
 
-    public NotificationController(GptAPIService gptApiService,
-                                  OpenApiExampleGeneratorService openApiExampleGeneratorService,
-                                  HTMLParser htmlParser,
-                                  RestTemplateBuilder restTemplate,
-                                  DataChangeRepository dataChangeRepository,
-                                  SubscriptionRepository subscriptionRepository,
-                                  UserRepository userRepository) {
-        this.gptApiService = gptApiService;
-        this.openApiExampleGeneratorService = openApiExampleGeneratorService;
-        this.htmlParser = htmlParser;
-        this.restTemplate = restTemplate.build();
-        this.dataChangeRepository = dataChangeRepository;
-        this.subscriptionRepository = subscriptionRepository;
-        this.userRepository = userRepository;
+    private final RestTemplateBuilder restTemplateBuilder;
 
-        this.markdownParser = Parser.builder().build();
-        this.htmlRenderer = HtmlRenderer.builder().softbreak("<br>").build();
-    }
+    private final Parser markdownParser = Parser.builder().build();
+    private final HtmlRenderer htmlRenderer = HtmlRenderer.builder().softbreak("<br>").build();
 
-    public void setRestTemplate(RestTemplateBuilder restTemplate) {
-        this.restTemplate = restTemplate.build();
-    }
-
-    public void setEmailSender(EmailSender emailSender) {
-        this.emailSender = emailSender;
-    }
-
-    // Example: curl --location --request POST "http://localhost:30004/generate-response?address=http.com&branch=main&prevCommit=dc3b2a1&commit=1a2b3cd" --form "markdown=<oas_diff/openapi_default.json.md" --form "oldSpec=<autooas-base/openapi_default.json" --form "newSpec=<autooas-head/openapi_default.json"
+    /**
+     * Webhook Receiver: Generates API change summaries, persists them, and triggers notifications.
+     * Expects multipart/form-data from CI/CD pipelines (e.g., GitLab).
+     */
     @PostMapping(value = "/generate-response", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<String> generateResponse(
             @RequestPart("markdown") String markdownContent,
             @RequestPart(value = "oldSpec", required = false) String oldSpec,
             @RequestPart(value = "newSpec", required = false) String newSpec,
-            @RequestParam(value = "address") String address,
-            @RequestParam(value = "branch") String branch,
-            @RequestParam(value = "prevCommit") String previousCommitShortSha,
-            @RequestParam(value = "commit") String latestCommitShortSha,
-            Model model
+            @RequestParam("address") String address,
+            @RequestParam("branch") String branch,
+            @RequestParam("prevCommit") String previousCommitShortSha,
+            @RequestParam("commit") String latestCommitShortSha
     ) {
-        System.out.println("NOTIFICATION - Received request for address " + address + " branch " + branch);
-        Optional<Subscription> desiredSub = subscriptionRepository.findByAddressAndBranch(address, branch);
+        log.info("Received notification webhook for address: '{}' on branch: '{}'", address, branch);
 
-        if (desiredSub.isPresent()) {
-            System.out.println("NOTIFICATION - Received a request successfully");
-            System.out.println("NOTIFICATION - Markdown File: " + markdownContent);
+        Subscription subscription = subscriptionRepository.findByAddressAndBranch(address, branch)
+                .orElse(null);
 
-            String gptResponse = gptApiService.generateResponse(markdownContent);
-            System.out.println("NOTIFICATION - Generated response: " + gptResponse);
-
-            Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
-            Map<String, String> apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
-
-            String cleanDetailedChanges = normalizeMarkdown(markdownContent);
-
-//            String combinedMarkdown =
-//                    "### Summary\n" + gptResponse + "\n\n" +
-//                            "---\n" + cleanDetailedChanges + "\n\n" +
-//                            "---\n" +
-//                            "**API Examples (new version):**\n\n" +
-//                            apiUsageExamples + "\n\n" +
-//                            "---\n" +
-//                            "**Subscription Details:**\n" +
-//                            "(address = " + desiredSub.get().getAddress() + ", branch = " + desiredSub.get().getBranch() + ")";
-
-            String finalHtmlContent = convertMarkdownToHtml(cleanDetailedChanges); // or combinedMarkdown
-            String title = "Change(s) in " + desiredSub.get().getSubName() + " detected";
-            boolean isBreaking = checkIfBackwardIncompatible(markdownContent);
-
-            DataChange dataChange = new DataChange();
-            dataChange.setTitle(title);
-            dataChange.setContent(finalHtmlContent);
-            dataChange.setChangeSummary(gptResponse);
-            dataChange.setUsageExamples(apiUsageExamples);
-            dataChange.setOpenApiOld(oldSpec);
-            dataChange.setOpenApiNew(newSpec);
-            dataChange.setLatestCommitShortSha(latestCommitShortSha);
-            dataChange.setPrevCommitShortSha(previousCommitShortSha);
-            dataChange.setBackwardIncompatible(isBreaking);
-
-            List<AppUser> users = userRepository.findAll();
-
-            for (AppUser user : users) {
-                Set<Subscription> subscriptions = user.getSubscriptions();
-                for (Subscription subscription : subscriptions) {
-                    if (subscription.getAddress().equals(address) && subscription.getBranch().equals(branch)) {
-                        System.out.println("NOTIFICATION - Storing all info...");
-                        storeDataChange(dataChange, subscription);
-                        System.out.println("NOTIFICATION - Stored data change successfully");
-
-                        trySendEmailNotification(user, subscription, dataChange);
-                        trySendSubscriptionNotification(user, dataChange);
-                    }
-                }
-            }
-            return ResponseEntity.ok("API Change was successfully processed.");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: Address not found in subscription list!");
+        if (subscription == null) {
+            log.warn("Discarding webhook: No matching subscription found in database.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Error: Address and branch combination not found in subscription list.");
         }
 
+        log.info("Processing API diff for Subscription ID: {}", subscription.getId());
+
+        String llmResponse = gptApiService.generateResponse(markdownContent);
+        log.debug("LLM generated response summary successfully.");
+
+        Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);
+        Map<String, String> apiUsageExamples = openApiExampleGeneratorService.generateCurlExamples(newSpec, address, modifiedEndpoints);
+
+        String cleanDetailedChanges = normalizeMarkdown(markdownContent);
+        String finalHtmlContent = convertMarkdownToHtml(cleanDetailedChanges);
+        boolean isBreaking = checkIfBackwardIncompatible(markdownContent);
+        String title = "Change(s) in " + subscription.getSubName() + " detected";
+
+        DataChange dataChange = new DataChange();
+        dataChange.setTitle(title);
+        dataChange.setContent(finalHtmlContent);
+        dataChange.setChangeSummary(llmResponse);
+        dataChange.setUsageExamples(apiUsageExamples);
+        dataChange.setOpenApiOld(oldSpec);
+        dataChange.setOpenApiNew(newSpec);
+        dataChange.setLatestCommitShortSha(latestCommitShortSha);
+        dataChange.setPrevCommitShortSha(previousCommitShortSha);
+        dataChange.setBackwardIncompatible(isBreaking);
+        dataChange.setSubscription(subscription);
+        dataChange.setTimestamp(LocalDateTime.now());
+
+        dataChangeRepository.save(dataChange);
+        log.info("Successfully persisted DataChange record.");
+
+        notifySubscribedUsers(subscription, dataChange);
+
+        return ResponseEntity.ok("API Change was successfully processed.");
+    }
+
+    private void notifySubscribedUsers(Subscription subscription,
+                                       DataChange dataChange) {
+        // Stream all users and filter to only those subscribed to this specific repository
+        List<AppUser> subscribedUsers = userRepository.findAll().stream()
+                .filter(u -> u.getSubscriptions().contains(subscription))
+                .toList();
+
+        log.info("Found {} users subscribed to {}. Dispatching notifications.", subscribedUsers.size(), subscription.getSubName());
+
+        for (AppUser user : subscribedUsers) {
+            trySendEmailNotification(user, subscription, dataChange);
+            trySendClientWebhookNotification(user, dataChange);
+        }
+    }
+
+    private void trySendEmailNotification(AppUser user,
+                                          Subscription subscription,
+                                          DataChange dataChange) {
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            log.info("Queueing email notification for user: {} (Subscription: {})", user.getName(), subscription.getSubName());
+            log.warn("WARNING: Email sending is currently DISABLED");
+            // emailSender.sendEmail(user.getEmail(), dataChange.getTitle(), dataChange.getChangeSummary());
+        }
+    }
+
+    private void trySendClientWebhookNotification(AppUser user,
+                                                  DataChange dataChange) {
+        if (user.getToken() != null && !user.getToken().isBlank()) {
+            log.info("User '{}' is registered as a GitLab/Teams client. Preparing webhook dispatch.", user.getName());
+            log.warn("WARNING: Ticket/Webhook creation is currently DISABLED");
+            // sendPostRequest(user.getToken(), dataChange.getChangeSummary(), dataChange.getTitle());
+        }
+    }
+
+    private void sendPostRequest(String apiUrl,
+                                 String response,
+                                 String title) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", title);
+        jsonObject.put("description", response);
+
+        HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
+
+        try {
+            log.debug("Dispatching outbound webhook to URL: {}", apiUrl);
+            ResponseEntity<String> postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
+
+            if (postResponse.getStatusCode().is2xxSuccessful()) {
+                log.info("Outbound webhook dispatch successful. Response: {}", postResponse.getBody());
+            } else {
+                log.error("Outbound webhook dispatch failed. Status: {}, Response: {}", postResponse.getStatusCode(), postResponse.getBody());
+            }
+        } catch (RestClientException e) {
+            log.error("Error occurred while making POST request to webhook URL {}: {}", apiUrl, e.getMessage());
+        }
     }
 
     private boolean checkIfBackwardIncompatible(String markdown) {
-        if (markdown == null || markdown.isEmpty()) return false;
-
-        String lowerCaseMd = markdown.toLowerCase();
-
-        return lowerCaseMd.contains("broke backward compatibility");
+        return markdown != null && !markdown.isEmpty() && markdown.toLowerCase().contains("broke backward compatibility");
     }
 
     private String convertMarkdownToHtml(String markdown) {
         if (markdown == null || markdown.isEmpty()) return "";
 
         String html = htmlRenderer.render(markdownParser.parse(markdown));
-
         return html
                 .replace("<h4>What's New</h4>", "<h4 id=\"whats-new\">What's New</h4>")
                 .replace("<h4>What's Deleted</h4>", "<h4 id=\"whats-deleted\">What's Deleted</h4>")
@@ -174,7 +188,7 @@ public class NotificationController {
     private String normalizeMarkdown(String markdown) {
         if (markdown == null || markdown.isEmpty()) return "";
 
-        // Removes Project Name and first ---
+        // Removes Project Name and first --- header block
         int firstSeparatorIndex = markdown.indexOf("---");
         String content = (firstSeparatorIndex != -1)
                 ? markdown.substring(firstSeparatorIndex + 3)
@@ -183,44 +197,15 @@ public class NotificationController {
         return content.trim();
     }
 
-    // TODO rework
-    private void trySendEmailNotification(AppUser user,
-                                          Subscription subscription,
-                                          DataChange dataChange) {
-        if (user.getEmail() != null) {
-            System.out.println("NOTIFICATION - User: " + user.getName() + " receives an email, because of his subscription to: " + subscription.getSubName());
-            System.out.println("NOTIFICATION - Sending email... ");
-            System.out.println("NOTIFICATION - WARNING: EMAIL SENDING CURRENTLY DISABLED");
-//            emailSender.sendEmail(user.getEmail(), dataChange.getTitle(), dataChange.getChangeSummary());
-        }
-    }
-
-
-    // Todo rework (also add jd)
-    // POST request for Teams and GitLab
-    private void trySendSubscriptionNotification(AppUser user,
-                                                 DataChange dataChange) {
-        if (user.getToken() != null) {
-            String apiUrl = user.getToken();
-            System.out.println("NOTIFICATION - User is registered as a Client in GitLab");
-            System.out.println("NOTIFICATION - WARNING: TICKET CREATION CURRENTLY DISABLED");
-            // sendPostRequest(apiUrl, dataChange.getChangeSummary();, "API Changes");
-        }
-    }
-
     private Set<String> extractModifiedEndpoints(String markdown) {
         Set<String> endpoints = new HashSet<>();
-
         if (markdown == null || markdown.isEmpty()) return endpoints;
 
         String[] lines = markdown.split("\\r?\\n");
         boolean tracking = false;
 
         for (String line : lines) {
-            String cleanLine = line.replace("**", "")
-                    .replace("#", "")
-                    .replace("`", "");
-            String trimmed = cleanLine.trim();
+            String trimmed = line.replace("**", "").replace("#", "").replace("`", "").trim();
 
             if (trimmed.equalsIgnoreCase("What's New") || trimmed.equalsIgnoreCase("What's Changed")) {
                 tracking = true;
@@ -230,53 +215,12 @@ public class NotificationController {
                 continue;
             }
 
-            if (tracking) {
-                if (trimmed.startsWith("GET ") || trimmed.startsWith("POST ") ||
-                        trimmed.startsWith("PUT ") || trimmed.startsWith("PATCH ") ||
-                        trimmed.startsWith("DELETE ")) {
-
-                    endpoints.add(trimmed);
-                }
+            if (tracking && (trimmed.startsWith("GET ") || trimmed.startsWith("POST ") ||
+                    trimmed.startsWith("PUT ") || trimmed.startsWith("PATCH ") ||
+                    trimmed.startsWith("DELETE "))) {
+                endpoints.add(trimmed);
             }
         }
-
         return endpoints;
     }
-
-    private void sendPostRequest(String apiUrl,
-                                 String response,
-                                 String title) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("title", title);
-        jsonObject.put("description", response);
-
-        HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
-        ResponseEntity<String> postResponse;
-        try {
-            System.out.println("NOTIFICATION - WebUrl: " + apiUrl);
-            postResponse = restTemplate.postForEntity(apiUrl, entity, String.class);
-            if (postResponse != null) {
-                if (postResponse.getStatusCode().is2xxSuccessful()) {
-                    System.out.println("NOTIFICATION - POST request successful. Response: " + postResponse.getBody());
-                } else {
-                    System.out.println("NOTIFICATION - POST request failed. Response: " + postResponse.getBody());
-                }
-            } else {
-                System.out.println("NOTIFICATION - POST request failed. No response received.");
-            }
-        } catch (RestClientException e) {
-            System.out.println("NOTIFICATION - Error while making POST request: " + e.getMessage());
-        }
-    }
-
-    private void storeDataChange(DataChange dataChange,
-                                 Subscription subscription) {
-        dataChange.setSubscription(subscription);
-        dataChange.setTimestamp(LocalDateTime.now());
-        dataChangeRepository.save(dataChange);
-    }
 }
-
