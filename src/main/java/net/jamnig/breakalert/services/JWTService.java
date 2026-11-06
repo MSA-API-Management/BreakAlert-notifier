@@ -16,7 +16,7 @@ public class JWTService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${security.jwt.expiration-time}")
+    @Value("${security.jwt.expiration-time:3600000}")
     private int expiration;
 
     public void setSecretKey(String secretKey) {
