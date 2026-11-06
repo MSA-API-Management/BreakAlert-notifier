@@ -1,0 +1,16 @@
+package net.jamnig.breakalert.controller;
+
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+public class ErrorController implements org.springframework.boot.webmvc.error.ErrorController {
+
+    @RequestMapping("/error")
+    public String handleError(HttpServletRequest request) {
+        Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        System.out.println("ERROR - STATUS CODE: " + statusCode);
+        return "error";
+    }
+
+}
