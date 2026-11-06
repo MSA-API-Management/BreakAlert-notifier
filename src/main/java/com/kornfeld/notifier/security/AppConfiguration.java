@@ -2,6 +2,7 @@ package com.kornfeld.notifier.security;
 
 import com.kornfeld.notifier.entities.AppUser;
 import com.kornfeld.notifier.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,17 +15,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
-// Needed to prevent errors of circular referencing
 @Configuration
+@RequiredArgsConstructor
 public class AppConfiguration {
     private final UserRepository userRepository;
 
-    public AppConfiguration(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
     @Bean
-    BCryptPasswordEncoder passwordEncoder() {
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 

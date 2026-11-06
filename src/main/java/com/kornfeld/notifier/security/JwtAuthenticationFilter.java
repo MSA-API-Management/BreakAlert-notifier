@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,18 +18,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JWTService jwtService, UserDetailsService userDetailsService) {
-        this.jwtService = jwtService;
-        this.userDetailsService = userDetailsService;
-    }
-
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
 
         String jwtToken = null;
@@ -46,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 username = jwtService.getUsername(jwtToken);
             } catch (Exception e) {
-                System.out.println("Invalid JWT Token: " + e.getMessage());
+                log.warn("Invalid JWT Token provided: {}", e.getMessage());
             }
         }
 
@@ -54,6 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
             if (jwtService.isTokenTimeValid(jwtToken)) {
+                log.debug("JWT valid. Setting SecurityContext for user: {}", username);
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -62,6 +65,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                log.debug("JWT token is expired or invalid for user: {}", username);
             }
         }
 
