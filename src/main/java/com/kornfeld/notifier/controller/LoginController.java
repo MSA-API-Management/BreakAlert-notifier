@@ -6,31 +6,31 @@ import com.kornfeld.notifier.services.AuthenticationService;
 import com.kornfeld.notifier.services.JWTService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+@Slf4j
 @Controller
+@RequiredArgsConstructor
 public class LoginController {
-
     private final UserRepository userRepository;
     private final JWTService jwtService;
     private final AuthenticationService authenticationService;
 
-    @Autowired
-    public LoginController(UserRepository userRepository, JWTService jwtService, AuthenticationService authenticationService) {
-        this.userRepository = userRepository;
-        this.jwtService = jwtService;
-        this.authenticationService = authenticationService;
-    }
+    private final PasswordEncoder passwordEncoder;
 
-    @GetMapping("")
+    @GetMapping("/")
     public String viewHomePage() {
         return "index";
     }
@@ -42,24 +42,25 @@ public class LoginController {
     }
 
     @PostMapping("/process_register")
-    public String processRegister(AppUser user, Model model) {
-        List<AppUser> list = userRepository.findByNameOrEmail(user.getName(), user.getEmail());
-        for (AppUser user1: list) {
-            System.out.println("REGISTER - Users already in Database " + user1.getName()+", " + user1.getEmail());
-        }
-        if(list.isEmpty()){
-            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            String encodedPassword = passwordEncoder.encode(user.getPassword());
-            user.setPassword(encodedPassword);
+    public String processRegister(AppUser user, RedirectAttributes redirectAttributes) {
+        log.info("Attempting to register new user: {}", user.getName());
 
+        List<AppUser> existingUsers = userRepository.findByNameOrEmail(user.getName(), user.getEmail());
+
+        if (existingUsers.isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
-            model.addAttribute("successMessage", "Registration successful! You can now log in.");
+
+            log.info("User '{}' successfully registered.", user.getName());
+
+            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! You can now log in.");
+            return "redirect:/login";
+        } else {
+            log.warn("Registration failed: User with name '{}' or email '{}' already exists.", user.getName(), user.getEmail());
+
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: User already exists. Please choose a different username or email.");
+            return "redirect:/register";
         }
-        else {
-            model.addAttribute("errorMessage", "User already exists. Please choose a different username or email.");
-            System.out.println("REGISTER - User already exists");
-        }
-        return "index";
     }
 
     @GetMapping("/login")
@@ -68,28 +69,37 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String processLogin(@RequestParam("username") String username, @RequestParam("password") String password, HttpServletResponse response, Model model) {
+    public String processLogin(@RequestParam("username") String username,
+                               @RequestParam("password") String password,
+                               HttpServletResponse response,
+                               RedirectAttributes redirectAttributes) {
+        log.info("Login attempt for user: {}", username);
+
         try {
             AppUser authenticatedUser = authenticationService.authenticate(username, password);
+
             if (authenticatedUser != null) {
                 String jwtToken = jwtService.generateToken(authenticatedUser);
 
                 Cookie jwtCookie = new Cookie("jwt", jwtToken);
                 jwtCookie.setHttpOnly(true);
-                jwtCookie.setSecure(false);
+                jwtCookie.setSecure(false); // TODO true if https
                 jwtCookie.setPath("/");
                 jwtCookie.setMaxAge(jwtService.getExpiration());
 
                 response.addCookie(jwtCookie);
+                log.info("User '{}' successfully logged in.", username);
 
                 return "redirect:/dashboard";
             } else {
-                return "index";
+                log.warn("Login failed: Authentication returned null for user '{}'", username);
+                redirectAttributes.addFlashAttribute("errorMessage", "Error: Invalid username or password.");
+                return "redirect:/login";
             }
-        } catch (Exception e){
-            model.addAttribute("credentials",true);
-            return "error";
+        } catch (Exception e) {
+            log.warn("Authentication failed for user '{}': {}", username, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: Invalid username or password.");
+            return "redirect:/login";
         }
     }
-
 }
