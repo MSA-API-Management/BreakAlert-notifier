@@ -8,7 +8,7 @@ import net.jamnig.breakalert.repositories.DataChangeRepository;
 import net.jamnig.breakalert.repositories.SubscriptionRepository;
 import net.jamnig.breakalert.repositories.UserRepository;
 import net.jamnig.breakalert.services.EmailSender;
-import net.jamnig.breakalert.services.GptAPIService;
+import net.jamnig.breakalert.services.LlmApiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 public class NotificationControllerTest {
     @Mock
-    private GptAPIService gpt3ApiService;
+    private LlmApiService llmApiService;
 
 //    @Mock
 //    private HTMLParser htmlParser;
@@ -75,7 +75,7 @@ public class NotificationControllerTest {
         when(subscriptionRepository.findByAddressAndBranch(eq("testing.com"), eq("main"))).thenReturn(Optional.of(subscription));
         when(userRepository.findAll()).thenReturn(Collections.singletonList(user));
 //        when(htmlParser.extractChanges(anyString())).thenReturn("HTML Content");
-        when(gpt3ApiService.generateResponse(anyString())).thenReturn("Response Content");
+        when(llmApiService.generateResponse(anyString())).thenReturn("Response Content");
         doNothing().when(emailSender).sendEmail(anyString(), anyString(), anyString());
         doAnswer(invocation -> {
             DataChange savedDataChange = invocation.getArgument(0);
@@ -88,7 +88,7 @@ public class NotificationControllerTest {
 
         verify(subscriptionRepository, times(1)).findByAddressAndBranch("testing.com", "main");
 //        verify(htmlParser, times(1)).extractChanges("HTML Content");
-        verify(gpt3ApiService, times(1)).generateResponse(anyString());
+        verify(llmApiService, times(1)).generateResponse(anyString());
         verify(emailSender, times(1)).sendEmail("user@test.com", "Change(s) in testname detected", "Summary:\n\nResponse Content\n\n\nDetailed Changes:\nHTML Content\n\nSubscription Details:\n(address = testing.com, branch = main)");
         verify(dataChangeRepository, times(1)).save(dataChangeCaptor.capture());
 

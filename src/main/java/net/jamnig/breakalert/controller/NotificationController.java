@@ -7,7 +7,7 @@ import net.jamnig.breakalert.repositories.DataChangeRepository;
 import net.jamnig.breakalert.repositories.SubscriptionRepository;
 import net.jamnig.breakalert.repositories.UserRepository;
 import net.jamnig.breakalert.services.EmailSender;
-import net.jamnig.breakalert.services.GptAPIService;
+import net.jamnig.breakalert.services.LlmApiService;
 import net.jamnig.breakalert.services.OpenApiExampleGeneratorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ import java.util.Set;
 @RestController
 @RequiredArgsConstructor
 public class NotificationController {
-    private final GptAPIService gptApiService;
+    private final LlmApiService llmApiService;
     private final OpenApiExampleGeneratorService openApiExampleGeneratorService;
     private final EmailSender emailSender;
 
@@ -76,7 +76,7 @@ public class NotificationController {
 
         log.info("Processing API diff for Subscription ID: {}", subscription.getId());
 
-        String llmResponse = gptApiService.generateResponse(markdownContent);
+        String llmResponse = llmApiService.generateResponse(markdownContent);
         log.debug("LLM generated response summary successfully.");
 
         Set<String> modifiedEndpoints = extractModifiedEndpoints(markdownContent);

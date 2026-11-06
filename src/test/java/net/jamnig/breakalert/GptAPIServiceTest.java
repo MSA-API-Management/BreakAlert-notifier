@@ -1,6 +1,6 @@
 package net.jamnig.breakalert;
 
-import net.jamnig.breakalert.services.GptAPIService;
+import net.jamnig.breakalert.services.LlmApiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -11,13 +11,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GptAPIServiceTest {
     private static final String prompt = "\nWhat's New:\nGET/Test null \n\nWhat's Deleted:\n\n\nWhat's Deprecated:\n\n\nWhat's Changed:\n";
     private RestTemplate restTemplateMock;
-    private GptAPIService gpt3ApiService;
+    private LlmApiService llmApiService;
     @BeforeEach
     public void setUp() {
         restTemplateMock = Mockito.mock(RestTemplate.class);
-        gpt3ApiService = new GptAPIService();
-        gpt3ApiService.setRestTemplate(restTemplateMock);
-        gpt3ApiService.setAPI_KEY("");
+//        gpt3ApiService = new GptAPIService();
+//        gpt3ApiService.setRestTemplate(restTemplateMock);
+//        gpt3ApiService.setAPI_KEY("");
     }
 
     /*@Test
@@ -35,9 +35,9 @@ public class GptAPIServiceTest {
         Mockito.when(restTemplateMock.exchange(Mockito.anyString(), Mockito.any(HttpMethod.class), Mockito.any(HttpEntity.class), Mockito.eq(String.class)))
                 .thenReturn(ResponseEntity.ok().body("Invalid JSON Response"));
 
-        gpt3ApiService.setOPENAI_API_URL("http://example.com");
+//        gpt3ApiService.setOPENAI_API_URL("http://example.com");
 
-        String generatedResponse = gpt3ApiService.generateResponse(prompt);
+        String generatedResponse = llmApiService.generateResponse(prompt);
 
         assertEquals("Error processing API response", generatedResponse);
     }
