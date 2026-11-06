@@ -1,275 +1,224 @@
 package com.kornfeld.notifier.controller;
+
 import com.kornfeld.notifier.entities.AppUser;
 import com.kornfeld.notifier.entities.DataChange;
 import com.kornfeld.notifier.entities.Subscription;
 import com.kornfeld.notifier.repositories.DataChangeRepository;
 import com.kornfeld.notifier.repositories.SubscriptionRepository;
 import com.kornfeld.notifier.repositories.UserRepository;
-import com.kornfeld.notifier.services.JWTService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.apache.coyote.Response;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.http.*;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
-import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
+@RequiredArgsConstructor
 public class DashboardController {
     private final UserRepository userRepository;
     private final DataChangeRepository dataChangeRepository;
     private final SubscriptionRepository subscriptionRepository;
-    @PersistenceContext
-    private EntityManager entityManager;
-    private RestTemplate restTemplate;
+    private final RestTemplateBuilder restTemplateBuilder;
 
-    private final JWTService jwtService;
-
-    @Autowired
-    public DashboardController(UserRepository userRepository, DataChangeRepository dataChangeRepository, SubscriptionRepository subscriptionRepository, RestTemplateBuilder restTemplate, JWTService jwtService) {
-        this.userRepository = userRepository;
-        this.dataChangeRepository = dataChangeRepository;
-        this.subscriptionRepository = subscriptionRepository;
-        this.restTemplate = restTemplate.build();
-        this.jwtService = jwtService;
-    }
-
-    public void setRestTemplate(RestTemplateBuilder restTemplate) {
-        this.restTemplate = restTemplate.build();
-    }
-
-    public void setEntityManager(EntityManager entityManager){
-        this.entityManager = entityManager;
-    }
-
+    /**
+     * Initializes the main dashboard view, loading the user's active subscriptions and available subscriptions
+     */
     @GetMapping("/dashboard")
-    @Transactional
-    public String showDashboard(Model model, @AuthenticationPrincipal AppUser appUser) {
-        System.out.println("DASHBOARD - Initializing Dashboard for: " + appUser.getName());
+    @Transactional(readOnly = true)
+    public String showDashboard(Model model,
+                                @AuthenticationPrincipal AppUser appUser) {
+        log.info("Initializing Dashboard for user: {}", appUser.getUsername());
 
-        appUser = entityManager.merge(appUser);
+        AppUser user = userRepository.findById(appUser.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
-        Set<Subscription> subscriptions = appUser.getSubscriptions();
-        model.addAttribute("username", appUser.getName());
+        Set<Subscription> userSubscriptions = user.getSubscriptions();
+        model.addAttribute("username", user.getUsername());
 
-        List<Subscription> toSubscribe = subscriptionRepository.findAll();
-        toSubscribe.removeAll(subscriptions);
-        model.addAttribute("toSubscribe", toSubscribe);
+        List<Subscription> availableSubscriptions = subscriptionRepository.findAll().stream()
+                .filter(sub -> !userSubscriptions.contains(sub))
+                .collect(Collectors.toList());
+        model.addAttribute("toSubscribe", availableSubscriptions);
 
-        if(appUser.getToken() != null && !appUser.getToken().isEmpty()){
+        if (user.getToken() != null && !user.getToken().isBlank()) {
             model.addAttribute("tokenExists", true);
         }
 
         Map<Long, List<DataChange>> dataChangesMap = new HashMap<>();
-        for (Subscription subscription : subscriptions) {
-            System.out.println("DASHBOARD - Load Subscription ID" + subscription.getId());
-            Set<DataChange> dataChanges = dataChangeRepository.findBySubscriptionId(subscription.getId());
-
-            if(dataChanges != null) {
-                List<DataChange> dataChangeList = new ArrayList<>(dataChanges);
-                dataChangeList.sort((dc1, dc2) -> dc2.getTimestamp().compareTo(dc1.getTimestamp()));
-                dataChangesMap.put(subscription.getId(), dataChangeList);
+        for (Subscription subscription : userSubscriptions) {
+            Set<DataChange> changes = dataChangeRepository.findBySubscriptionId(subscription.getId());
+            if (changes != null && !changes.isEmpty()) {
+                List<DataChange> sortedChanges = new ArrayList<>(changes);
+                sortedChanges.sort((dc1, dc2) -> dc2.getTimestamp().compareTo(dc1.getTimestamp()));
+                dataChangesMap.put(subscription.getId(), sortedChanges);
             }
         }
 
-        List<Subscription> sortedSubscriptions = new ArrayList<>(subscriptions);
+        List<Subscription> sortedSubscriptions = new ArrayList<>(userSubscriptions);
         sortedSubscriptions.sort(Comparator.comparing(Subscription::getSubName, String.CASE_INSENSITIVE_ORDER));
+
         model.addAttribute("subscriptions", sortedSubscriptions);
         model.addAttribute("dataChangesMap", dataChangesMap);
 
         return "dashboard";
     }
 
+    /**
+     * Allows a user to subscribe to an existing global subscription
+     */
     @PostMapping("/subscribe")
     @Transactional
-    public String subscribe(@RequestParam Long subscriptionId, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
-        Subscription subscription = subscriptionRepository.findById(subscriptionId).orElse(null);
-        appUser = entityManager.merge(appUser);
-        entityManager.persist(appUser);
+    public String subscribe(@RequestParam Long subscriptionId,
+                            @AuthenticationPrincipal AppUser appUser,
+                            RedirectAttributes redirectAttributes) {
+        log.info("User {} (ID={}) attempting to subscribe to subID={}", appUser.getUsername(), appUser.getId(), subscriptionId);
 
-        System.out.println("DASHBOARD - User " + appUser.getName() + "(ID=" + appUser.getId()+") wants to subscribe to subID="+subscriptionId);
+        AppUser user = userRepository.findById(appUser.getId()).orElseThrow();
+        Optional<Subscription> subscriptionOpt = subscriptionRepository.findById(subscriptionId);
 
-        if (subscription != null) {
-            appUser.getSubscriptions().add(subscription);
-            model.addAttribute("subscriptionSuccess", true);
+        if (subscriptionOpt.isPresent()) {
+            user.getSubscriptions().add(subscriptionOpt.get());
+            userRepository.save(user);
+            redirectAttributes.addFlashAttribute("successMessage", "Successfully subscribed to " + subscriptionOpt.get().getSubName());
         } else {
-            model.addAttribute("subscriptionError", true);
+            log.warn("Subscription ID {} not found during subscribe attempt.", subscriptionId);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: Subscription not found");
         }
 
-        Set<Subscription> subscriptions = appUser.getSubscriptions();
-        List<Subscription> toSubscribe = subscriptionRepository.findAll();
-        toSubscribe.removeAll(subscriptions);
-        model.addAttribute("toSubscribe", toSubscribe);
+        return "redirect:/dashboard";
+//        return "redirect:/dashboard?tab=subscribe";
+    }
+
+    /**
+     * Allows a user to unsubscribe from a global subscription
+     */
+    @DeleteMapping("/dashboard/subscriptions/{subscriptionId}")
+    @Transactional
+    public String unsubscribe(@PathVariable Long subscriptionId,
+                              @AuthenticationPrincipal AppUser appUser,
+                              RedirectAttributes redirectAttributes) {
+        log.info("User {} attempting to unsubscribe from subID={}", appUser.getUsername(), subscriptionId);
+
+        AppUser user = userRepository.findById(appUser.getId()).orElseThrow();
+        Subscription subscriptionToRemove = subscriptionRepository.findById(subscriptionId).orElse(null);
+
+        if (subscriptionToRemove != null && user.getSubscriptions().contains(subscriptionToRemove)) {
+            user.getSubscriptions().remove(subscriptionToRemove);
+            userRepository.save(user);
+            redirectAttributes.addFlashAttribute("successMessage", "Successfully unsubscribed");
+        } else {
+            log.warn("Failed to unsubscribe: Subscription ID {} not found or user not subscribed.", subscriptionId);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: Could not unsubscribe");
+        }
 
         return "redirect:/dashboard";
     }
 
+    /**
+     * Saves and validates a GitLab webhook client URL for the user
+     */
     @PostMapping("/saveToken")
     @Transactional
-    public String saveToken(@RequestParam String tokenLink,@AuthenticationPrincipal AppUser appUser, RedirectAttributes redirectAttributes, Model model) {
+    public String saveToken(@RequestParam String tokenLink,
+                            @AuthenticationPrincipal AppUser appUser,
+                            RedirectAttributes redirectAttributes) {
+        log.info("User {} attempting to save GitLab Client URL: {}", appUser.getUsername(), tokenLink);
 
-        // For testing: https://gitlab.com/api/v4/projects/53346840/ref/main/trigger/pipeline?token=glptt-5f5619568b281e261c8cc546bdd22be10f001df9
+        boolean isGitLabAvailable = testGitLabWebhook(tokenLink);
 
-        boolean gitLabAvailable = false;
+        if (isGitLabAvailable) {
+            AppUser user = userRepository.findById(appUser.getId()).orElseThrow();
+            user.setToken(tokenLink);
+            userRepository.save(user);
+            log.info("Successfully validated and saved GitLab token for user {}", user.getUsername());
+        } else {
+            log.warn("GitLab token validation failed for URL: {}", tokenLink);
+        }
 
+        redirectAttributes.addAttribute("gitLabAvailable", isGitLabAvailable);
+        return "redirect:/clientConfirmation";
+    }
+
+    @GetMapping("/clientConfirmation")
+    public String clientConfirmation(Model model,
+                                     @RequestParam("gitLabAvailable") boolean gitLabAvailable) {
+        if (gitLabAvailable) {
+            model.addAttribute("urlCorrect", true);
+        } else {
+            model.addAttribute("urlWrong", true);
+        }
+        return "confirmClient";
+    }
+
+    /**
+     * Downloads the old OpenAPI specification JSON for a specific data change
+     */
+    @GetMapping(value = "/download/old/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> downloadOldOpenApiDesc(@PathVariable Long id) {
+        DataChange change = dataChangeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Change record not found"));
+
+        if (change.getOpenApiOld() == null) {
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No old OpenAPI description available");
+        }
+
+        String fileName = String.format("old-openapi_%s.json", change.getPrevCommitShortSha());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(change.getOpenApiOld().getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Downloads the new OpenAPI specification JSON for a specific data change
+     */
+    @GetMapping(value = "/download/new/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> downloadNewOpenApiDesc(@PathVariable Long id) {
+        DataChange change = dataChangeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Change record not found"));
+
+        if (change.getOpenApiNew() == null) {
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No new OpenAPI description available");
+        }
+
+        String fileName = String.format("new-openapi_%s.json", change.getLatestCommitShortSha());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(change.getOpenApiNew().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private boolean testGitLabWebhook(String tokenLink) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("title", "Initialize Client");
-        jsonObject.put("description", "Test");
+        jsonObject.put("description", "Test connection from Notifier Dashboard");
 
         HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
-        ResponseEntity<String> postResponse;
+
         try {
-            System.out.println("DASHBOARD - Trying to Save GitLab Client URL: " + tokenLink);
-            postResponse = restTemplate.postForEntity(tokenLink, entity, String.class);
-            if (postResponse.getStatusCode().is2xxSuccessful()) {
-                System.out.println("DASHBOARD - Test POST request successful. Response: " + postResponse.getBody());
-                gitLabAvailable = true;
-            } else {
-                System.out.println("DASHBOARD - Test POST request failed. Response: " + postResponse.getBody());
-                System.out.println("DASHBOARD - Try again later or enter a different URL.");
-                model.addAttribute("urlFalse", true);
-            }
+            ResponseEntity<String> postResponse = restTemplate.postForEntity(tokenLink, entity, String.class);
+            return postResponse.getStatusCode().is2xxSuccessful();
         } catch (RestClientException e) {
-            System.out.println("DASHBOARD - Error while making Test POST request: " + e.getMessage());
-            System.out.println("DASHBOARD - Try again later or enter a different URL.");
-            model.addAttribute("urlFalse", true);
+            log.error("Error validating GitLab URL {}: {}", tokenLink, e.getMessage());
+            return false;
         }
-
-        if(gitLabAvailable){
-            appUser = entityManager.merge(appUser);
-            entityManager.persist(appUser);
-            appUser.setToken(tokenLink);
-            userRepository.save(appUser);
-        }
-        model.addAttribute("urlFalse", false);
-        redirectAttributes.addAttribute("gitLabAvailable", gitLabAvailable);
-        return "redirect:/clientConfirmation";
-    }
-
-    @GetMapping("/clientConfirmation")
-    public String clientConfirmation(Model model, @AuthenticationPrincipal AppUser appUser, @RequestParam("gitLabAvailable") boolean gitLabAvailable, RedirectAttributes redirectAttributes) {
-        if (gitLabAvailable){
-            model.addAttribute("urlCorrect", true);
-        } else {
-            model.addAttribute("urlWrong", true);
-        }
-
-        return "confirmClient";
-    }
-
-
-    @PostMapping("/dashboard/deleteSubscription/{subscriptionId}")
-    @Transactional
-    public String deleteSubscription(@PathVariable Long subscriptionId, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
-        Optional<Subscription> subscription = subscriptionRepository.findById(subscriptionId);
-        appUser = entityManager.merge(appUser);
-        entityManager.persist(appUser);
-
-        if(subscription.isPresent()){
-            appUser.getSubscriptions().remove(subscription.get());
-            System.out.println("DASHBOARD - Successfully deleted the subscription ID " + subscriptionId);
-        }else{
-            System.out.println("DASHBOARD - Error when deleting the subscription ID " + subscriptionId);
-        }
-
-        return "redirect:/dashboard";
-    }
-
-    @GetMapping("/download/old/{id}")
-    public ResponseEntity<byte[]> downloadOldOpenApiDesc(@PathVariable Long id) {
-        DataChange change = dataChangeRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        String json = change.getOpenApiOld();
-
-        if (json == null){
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
-        }
-
-        String fileName = String.format("old-openapi_%s.json",change.getPrevCommitShortSha());
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+ fileName)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(json.getBytes(StandardCharsets.UTF_8));
-    }
-
-    @GetMapping("/download/new/{id}")
-    public ResponseEntity<byte[]> downloadNewOpenApiDesc(@PathVariable Long id) {
-        DataChange change = dataChangeRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        String json = change.getOpenApiNew();
-
-        if (json == null){
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "No OpenAPI description available");
-        }
-
-        String fileName = String.format("new-openapi_%s.json",change.getLatestCommitShortSha());
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(json.getBytes(StandardCharsets.UTF_8));
-    }
-
-    // TODO IDOR RISK (also for other endpoints)
-    @PostMapping("/dashboard/changeSubscriptionName/{subscriptionId}")
-    @Transactional
-    public String changeSubscriptionName(@PathVariable Long subscriptionId, @RequestParam String newName, @AuthenticationPrincipal AppUser appUser, Model model, RedirectAttributes redirectAttributes) {
-        appUser = entityManager.merge(appUser);
-
-        if(appUser!=null) {
-            Optional<Subscription> subscriptionOptional = subscriptionRepository.findById(subscriptionId);
-
-            if (subscriptionOptional.isPresent()) {
-                Subscription subscription = subscriptionOptional.get();
-                subscription.setSubName(newName);
-                subscriptionRepository.save(subscription);
-                System.out.println("DASHBOARD - Successfully changed the name of the subscription ID " + subscriptionId);
-            } else {
-                System.out.println("DASHBOARD - Error when changing the name of the subscription ID " + subscriptionId);
-            }
-        }
-
-        return "redirect:/dashboard";
-    }
-
-    private AppUser getCurrentUser(String jwtToken){
-        boolean tokenTimeValid = jwtService.isTokenTimeValid(jwtToken);
-        AppUser user = null;
-        if(tokenTimeValid) {
-            String username = jwtService.getUsername(jwtToken);
-            user = userRepository.findByName(username);
-            if(user!=null) {
-                System.out.println("DASHBOARD - Valid Token from user " + user.getName() + "(ID=" + user.getId() + ")");
-                setAuthentication(user);
-            } else {
-                System.out.println("DASHBOARD - Token is not valid");
-            }
-        }
-        return user;
-    }
-
-    private void setAuthentication(AppUser user){
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-        // To receive info about current user:
-        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // AppUser currentUser = (AppUser) authentication.getPrincipal();
     }
 }
