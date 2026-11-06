@@ -35,8 +35,7 @@ public class SecurityConfiguration {
                                 "/js/**",
                                 "/generate-response",
                                 "/subscriptions/processAll",
-                                "/error",
-                                "/sendTest")
+                                "/error")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
