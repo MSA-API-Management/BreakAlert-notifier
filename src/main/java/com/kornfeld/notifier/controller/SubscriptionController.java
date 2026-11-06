@@ -133,7 +133,7 @@ public class SubscriptionController {
             subscriptionRepository.delete(sub);
             redirectAttributes.addFlashAttribute("successMessage", "Subscription deleted successfully!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: Subscription not found.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: Subscription not found");
         }
 
         return "redirect:/dashboard?tab=subscribe";

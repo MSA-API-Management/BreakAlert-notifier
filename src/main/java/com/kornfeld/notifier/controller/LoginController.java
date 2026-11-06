@@ -53,12 +53,12 @@ public class LoginController {
 
             log.info("User '{}' successfully registered.", user.getName());
 
-            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! You can now log in.");
+            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! You can now log in");
             return "redirect:/login";
         } else {
             log.warn("Registration failed: User with name '{}' or email '{}' already exists.", user.getName(), user.getEmail());
 
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: User already exists. Please choose a different username or email.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: User already exists. Please choose a different username or email");
             return "redirect:/register";
         }
     }
@@ -93,12 +93,12 @@ public class LoginController {
                 return "redirect:/dashboard";
             } else {
                 log.warn("Login failed: Authentication returned null for user '{}'", username);
-                redirectAttributes.addFlashAttribute("errorMessage", "Error: Invalid username or password.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Error: Invalid username or password");
                 return "redirect:/login";
             }
         } catch (Exception e) {
             log.warn("Authentication failed for user '{}': {}", username, e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: Invalid username or password.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: Invalid username or password");
             return "redirect:/login";
         }
     }
