@@ -1,0 +1,158 @@
+package net.jamnig.breakalert;
+
+import net.jamnig.breakalert.controller.LoginController;
+import net.jamnig.breakalert.entities.AppUser;
+import net.jamnig.breakalert.repositories.UserRepository;
+import net.jamnig.breakalert.services.AuthenticationService;
+import net.jamnig.breakalert.services.JWTService;
+import org.junit.jupiter.api.*;
+import org.mockito.*;
+import org.springframework.ui.Model;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+
+public class LoginControllerTest {
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private JWTService jwtService;
+
+    @Mock
+    private AuthenticationService authenticationService;
+
+    @InjectMocks
+    private LoginController loginController;
+
+    private Model model;
+    private AppUser user;
+    private static final String USERNAME = "testUser";
+    private static final String EMAIL = "testUser@gmail.com";
+    private static final String PASSWORD = "password";
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        model = mock(Model.class);
+        user = new AppUser();
+    }
+
+    @Test
+    public void testViewHomePage() {
+        String returnVal = loginController.viewHomePage();
+
+        assertEquals("index", returnVal);
+    }
+
+    @Test
+    public void testShowRegistrationForm() {
+        String returnVal = loginController.showRegistrationForm(model);
+
+        assertEquals("signup", returnVal);
+
+        verify(model).addAttribute(eq("user"), any());
+    }
+
+/*
+    @Test
+    void testProcessRegister_Success() {
+        setUpUser();
+
+        when(userRepository.findByNameOrEmail(anyString(), anyString())).thenReturn(new ArrayList<>());
+
+        String returnVal = loginController.processRegister(user, model);
+
+        assertEquals("index", returnVal);
+
+        verify(userRepository).save(user);
+        verify(model).addAttribute(eq("successMessage"), anyString());
+    }
+*/
+
+/*    @Test
+    void testProcessRegister_Error() {
+        setUpUser();
+        List<AppUser> existingUsers = new ArrayList<>();
+        existingUsers.add(user);
+
+        when(userRepository.findByNameOrEmail(anyString(), anyString())).thenReturn(existingUsers);
+
+        String returnVal = loginController.processRegister(user, model);
+
+        assertEquals("index", returnVal);
+
+        verify(userRepository, never()).save(any());
+        verify(model).addAttribute(eq("errorMessage"), anyString());
+    }*/
+
+    @Test
+    void testShowLoginPage() {
+        String returnVal = loginController.showLoginPage();
+
+        assertEquals("login", returnVal);
+    }
+
+/*    @Test
+    void testProcessLogin_Authenticated() {
+        setUpUser();
+        user.setId(1L);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        String mockToken = "mock.jwt.token";
+
+        when(authenticationService.authenticate(USERNAME, PASSWORD)).thenReturn(user);
+        when(jwtService.generateToken(user)).thenReturn(mockToken);
+
+        String returnVal = loginController.processLogin(USERNAME, PASSWORD, response, model);
+
+        assertEquals("redirect:/dashboard", returnVal);
+
+        verify(jwtService).generateToken(user);
+
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        verify(response).addCookie(cookieCaptor.capture());
+
+        Cookie capturedCookie = cookieCaptor.getValue();
+        assertEquals("jwt", capturedCookie.getName());
+        assertEquals(mockToken, capturedCookie.getValue());
+        assertTrue(capturedCookie.isHttpOnly());
+        assertEquals("/", capturedCookie.getPath());
+    }
+
+    @Test
+    void testProcessLogin_NotAuthenticated() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        when(authenticationService.authenticate(USERNAME, PASSWORD)).thenReturn(null);
+
+        String returnVal = loginController.processLogin(USERNAME, PASSWORD, response, model);
+
+        assertEquals("index", returnVal);
+        verify(jwtService, never()).generateToken(any());
+        verify(response, never()).addCookie(any());
+    }
+
+    @Test
+    void testProcessLogin_BadCredentials() {
+        setUpUser();
+        user.setId(1L);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        Exception exception = new RuntimeException("Bad Credentials");
+
+        when(authenticationService.authenticate(USERNAME, "PASSWORD")).thenThrow(exception);
+
+        String returnVal = loginController.processLogin(USERNAME, "PASSWORD", response, model);
+
+        assertEquals("error", returnVal);
+        verify(model).addAttribute("credentials", true);
+        verify(response, never()).addCookie(any());
+    }
+
+    public void setUpUser(){
+        user.setName(USERNAME);
+        user.setEmail(EMAIL);
+        user.setPassword(PASSWORD);
+    }*/
+
+}

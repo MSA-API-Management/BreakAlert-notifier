@@ -1,0 +1,45 @@
+package net.jamnig.breakalert.security;
+
+import net.jamnig.breakalert.entities.AppUser;
+import net.jamnig.breakalert.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.Optional;
+
+@Configuration
+@RequiredArgsConstructor
+public class AppConfiguration {
+    private final UserRepository userRepository;
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return name -> {
+            Optional<AppUser> userOptional = Optional.ofNullable(userRepository.findByName(name));
+            if (userOptional.isPresent()) {
+                return userOptional.get();
+            } else {
+                throw new UsernameNotFoundException("User not found");
+            }
+        };
+    }
+
+    // Not explicitly called, but necessary for authentication
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+}

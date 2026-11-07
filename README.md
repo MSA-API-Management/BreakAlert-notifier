@@ -1,43 +1,44 @@
 # BreakAlert
-This is the third version of the Ndiff-Notifier. The project is written as a Spring Boot Application. API-Changes are analyzed by the OpenAI API model gpt-5-mini.
+This is the third version of the Ndiff-Notifier (now BreakAlert). The project is written as a Spring Boot Application. API changes are analyzed and summarized using a Large Language Model (default: OpenAI `gpt-5-mini-2025-08-07`, but configurable to any OpenAI-compatible API).
 
 ## Usage
-To successfully launch the project the following environment variables need to be set beforehand:
+To successfully launch the project, you can pass the following environment variables (e.g., via Docker).
 
-- database
+### Required Variables
+If these variables are not provided, the application will fail to start.
 
-  The PostgreSQL-DB schema must be created separately and set here. The needed tables will be created automatically.
+- **`DATABASE_URL`**
+  The PostgreSQL connection string. The schema must be created beforehand, but the required tables will be generated automatically.
+  *Example: `jdbc:postgresql://localhost:5432/notifierDB`*
 
-  Enter the DB-Name like this: jdbc:postgresql://localhost:port/notifierDB
+- **`DATABASE_USERNAME`**
+  The database username.
 
-- username
+- **`DATABASE_PASSWORD`**
+  The database password.
 
-  Enter the DB username
+- **`JWT_KEY`**
+  The secret key used to sign JSON Web Tokens (must be valid for HS256).
 
-- password
+### Optional Variables
+These variables have built-in fallbacks or safe degradation if left empty.
 
-  Enter the DB password
+- **`JWT_EXPIRATION`**
+  Set the JWT expiration time in milliseconds.
 
-- GPT_API_KEY
+- **`MAIL_ADDRESS`**
+  Your Gmail address used for sending email notifications. *(If left empty, email sending is safely disabled).*
 
-  Enter the API-Key from OpenAI
+- **`MAIL_PASSWORD`**
+  The generated App Password for your Gmail account.
 
-- jwtExpiration
+- **`LLM_API_URL`**
+  URL to a specific LLM API.
+  *(Default: `https://api.openai.com/v1/chat/completions`)*
 
-  Set JWT-Key Expiration time in seconds
+- **`LLM_API_KEY`**
+  LLM API key to generate natural language change summaries. Leave blank if using a local unauthenticated model like Ollama.
 
-- jwtKey
-
-  Set the secret JWT-Key (HS256)
-
-- mailName
-
-  Enter your gmail address
-
-- mailPassword
-
-  Enter the generated API password for your Gmail-Account
-
-  - GPT_API_KEY
-
-  OpenAI API key to generate natural language change summaries
+- **`LLM_API_MODEL`**
+  The specific LLM model used for handling the prompt.
+  *(Default: `gpt-5-mini-2025-08-07`)*
